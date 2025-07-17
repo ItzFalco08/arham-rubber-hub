@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, Phone, MapPin, Facebook, Twitter, Instagram, Download, Eye, Star, Users, Globe, Award, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,11 +10,13 @@ import { useQuery } from '@tanstack/react-query';
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   // Fetch products from Supabase
   const { data: products = [], isLoading, error } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
+      console.log('Fetching products from Supabase...');
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -24,14 +27,32 @@ const Index = () => {
         throw error;
       }
       
+      console.log('Products fetched:', data);
       return data;
     },
   });
 
+  // Filter products based on search term
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
+    product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSearching(true);
+    
+    // Simulate search delay for better UX
+    setTimeout(() => {
+      setIsSearching(false);
+      // Scroll to products section
+      const productsSection = document.getElementById('products');
+      if (productsSection) {
+        productsSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 500);
+  };
 
   const handleDownloadBrochure = (productName: string) => {
     console.log(`Downloading brochure for ${productName}`);
@@ -100,7 +121,7 @@ const Index = () => {
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-30"
           style={{
-            backgroundImage: "url('/api/placeholder/1920/1080')"
+            backgroundImage: "url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80')"
           }}
         />
         <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
@@ -111,7 +132,7 @@ const Index = () => {
             Trusted provider of rubber sheets for diversified needs of food and clean room industry where 
             in, these international standards constructed quality and innovation to power industries worldwide.
           </p>
-          <div className="flex max-w-md mx-auto">
+          <form onSubmit={handleSearch} className="flex max-w-md mx-auto">
             <Input
               type="text"
               placeholder="Search products..."
@@ -119,10 +140,18 @@ const Index = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="rounded-r-none border-r-0 h-12 text-gray-900"
             />
-            <Button className="rounded-l-none bg-red-600 hover:bg-red-700 h-12 px-6">
-              <Search className="w-5 h-5" />
+            <Button 
+              type="submit" 
+              className="rounded-l-none bg-red-600 hover:bg-red-700 h-12 px-6"
+              disabled={isSearching}
+            >
+              {isSearching ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Search className="w-5 h-5" />
+              )}
             </Button>
-          </div>
+          </form>
         </div>
       </section>
 
@@ -152,7 +181,7 @@ const Index = () => {
             </div>
             <div className="relative">
               <img 
-                src="/api/placeholder/600/400" 
+                src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" 
                 alt="Industrial rubber manufacturing" 
                 className="rounded-lg shadow-lg"
               />
@@ -165,47 +194,73 @@ const Index = () => {
       <section id="products" className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Best Selling Product</h2>
-            <p className="text-gray-600">Flexible Rubber Solutions for Every Industry - Engineered to Perform, Built to Last!</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              {searchTerm ? `Search Results for "${searchTerm}"` : 'Best Selling Products'}
+            </h2>
+            <p className="text-gray-600">
+              {searchTerm 
+                ? `Found ${filteredProducts.length} product${filteredProducts.length !== 1 ? 's' : ''}`
+                : 'Flexible Rubber Solutions for Every Industry - Engineered to Perform, Built to Last!'
+              }
+            </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProducts.map((product) => (
-              <Card key={product.id} className="group hover:shadow-lg transition-shadow duration-300">
-                <div className="aspect-square overflow-hidden rounded-t-lg">
-                  <img 
-                    src={product.image || '/api/placeholder/250/200'} 
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <CardContent className="p-6">
-                  <Badge className="mb-3 bg-red-100 text-red-800">{product.category}</Badge>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">{product.name}</h3>
-                  <p className="text-gray-600 mb-4 text-sm">{product.description}</p>
-                  <div className="flex space-x-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={handleSeeMoreDetails}
-                      className="flex-1 hover:bg-red-50 hover:border-red-300"
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      See More Details
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      onClick={() => handleDownloadBrochure(product.name)}
-                      className="flex-1 bg-red-600 hover:bg-red-700"
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      Download Brochure
-                    </Button>
+          {filteredProducts.length === 0 && searchTerm ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                <Search className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
+              <p className="text-gray-600 mb-4">
+                Try adjusting your search terms or browse all products below.
+              </p>
+              <Button 
+                onClick={() => setSearchTerm('')}
+                variant="outline"
+                className="hover:bg-red-50 hover:border-red-300"
+              >
+                Clear Search
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredProducts.map((product) => (
+                <Card key={product.id} className="group hover:shadow-lg transition-shadow duration-300">
+                  <div className="aspect-square overflow-hidden rounded-t-lg">
+                    <img 
+                      src={product.image || '/api/placeholder/250/200'} 
+                      alt={product.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  <CardContent className="p-6">
+                    <Badge className="mb-3 bg-red-100 text-red-800">{product.category}</Badge>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">{product.name}</h3>
+                    <p className="text-gray-600 mb-4 text-sm line-clamp-3">{product.description}</p>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleSeeMoreDetails}
+                        className="flex-1 hover:bg-red-50 hover:border-red-300"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        See More Details
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleDownloadBrochure(product.name)}
+                        className="flex-1 bg-red-600 hover:bg-red-700"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download Brochure
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
           
           <div className="text-center mt-12">
             <Button className="bg-red-600 hover:bg-red-700 text-white px-8 py-3">

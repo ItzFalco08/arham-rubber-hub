@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -43,6 +43,7 @@ const AdminPanel = () => {
   const { data: products = [], isLoading, error } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
+      console.log('Fetching products from Supabase...');
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -53,6 +54,7 @@ const AdminPanel = () => {
         throw error;
       }
       
+      console.log('Products fetched:', data);
       return data;
     },
     enabled: isAuthenticated,
@@ -61,12 +63,17 @@ const AdminPanel = () => {
   // Add product mutation
   const addProductMutation = useMutation({
     mutationFn: async (product: Omit<Product, 'id' | 'created_at' | 'updated_at'>) => {
+      console.log('Adding product:', product);
       const { data, error } = await supabase
         .from('products')
         .insert([product])
         .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding product:', error);
+        throw error;
+      }
+      console.log('Product added successfully:', data);
       return data;
     },
     onSuccess: () => {
@@ -91,6 +98,7 @@ const AdminPanel = () => {
   // Update product mutation
   const updateProductMutation = useMutation({
     mutationFn: async (product: Product) => {
+      console.log('Updating product:', product);
       const { data, error } = await supabase
         .from('products')
         .update({
@@ -104,7 +112,11 @@ const AdminPanel = () => {
         .eq('id', product.id)
         .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating product:', error);
+        throw error;
+      }
+      console.log('Product updated successfully:', data);
       return data;
     },
     onSuccess: () => {
@@ -128,12 +140,17 @@ const AdminPanel = () => {
   // Delete product mutation
   const deleteProductMutation = useMutation({
     mutationFn: async (id: string) => {
+      console.log('Deleting product with id:', id);
       const { error } = await supabase
         .from('products')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting product:', error);
+        throw error;
+      }
+      console.log('Product deleted successfully');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -167,15 +184,42 @@ const AdminPanel = () => {
   };
 
   const handleAddProduct = () => {
-    if (newProduct.name && newProduct.description && newProduct.category) {
-      addProductMutation.mutate({
-        name: newProduct.name,
-        description: newProduct.description,
-        category: newProduct.category,
-        image: newProduct.image || '/api/placeholder/250/200',
-        brochure: newProduct.brochure
+    // Validate required fields
+    if (!newProduct.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Product name is required",
+        variant: "destructive",
       });
+      return;
     }
+    
+    if (!newProduct.category.trim()) {
+      toast({
+        title: "Error",
+        description: "Category is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!newProduct.description.trim()) {
+      toast({
+        title: "Error",
+        description: "Description is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('Submitting new product:', newProduct);
+    addProductMutation.mutate({
+      name: newProduct.name.trim(),
+      description: newProduct.description.trim(),
+      category: newProduct.category.trim(),
+      image: newProduct.image.trim() || '/api/placeholder/250/200',
+      brochure: newProduct.brochure.trim()
+    });
   };
 
   const handleEditProduct = (product: Product) => {
@@ -183,9 +227,38 @@ const AdminPanel = () => {
   };
 
   const handleUpdateProduct = () => {
-    if (editingProduct) {
-      updateProductMutation.mutate(editingProduct);
+    if (!editingProduct) return;
+    
+    // Validate required fields
+    if (!editingProduct.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Product name is required",
+        variant: "destructive",
+      });
+      return;
     }
+    
+    if (!editingProduct.category.trim()) {
+      toast({
+        title: "Error",
+        description: "Category is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!editingProduct.description.trim()) {
+      toast({
+        title: "Error",
+        description: "Description is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('Submitting updated product:', editingProduct);
+    updateProductMutation.mutate(editingProduct);
   };
 
   const handleDeleteProduct = (id: string) => {
@@ -299,7 +372,7 @@ const AdminPanel = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">Products</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Products ({products.length})</h2>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-red-600 hover:bg-red-700">
@@ -310,33 +383,39 @@ const AdminPanel = () => {
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Add New Product</DialogTitle>
+                <DialogDescription>
+                  Fill in the details below to add a new product to your catalog.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="productName">Product Name</Label>
+                  <Label htmlFor="productName">Product Name *</Label>
                   <Input
                     id="productName"
                     value={newProduct.name}
                     onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
                     placeholder="Enter product name"
+                    required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="productCategory">Category</Label>
+                  <Label htmlFor="productCategory">Category *</Label>
                   <Input
                     id="productCategory"
                     value={newProduct.category}
                     onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
                     placeholder="Enter category"
+                    required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="productDescription">Description</Label>
+                  <Label htmlFor="productDescription">Description *</Label>
                   <Textarea
                     id="productDescription"
                     value={newProduct.description}
                     onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
                     placeholder="Enter product description"
+                    required
                   />
                 </div>
                 <div>
@@ -362,7 +441,7 @@ const AdminPanel = () => {
                   className="w-full bg-red-600 hover:bg-red-700"
                   disabled={addProductMutation.isPending}
                 >
-                  {addProductMutation.isPending ? 'Adding...' : 'Add Product'}
+                  {addProductMutation.isPending ? 'Adding Product...' : 'Add Product'}
                 </Button>
               </div>
             </DialogContent>
@@ -382,7 +461,7 @@ const AdminPanel = () => {
               <CardContent className="p-4">
                 <Badge className="mb-2 bg-red-100 text-red-800">{product.category}</Badge>
                 <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
-                <p className="text-gray-600 text-sm mb-4">{product.description}</p>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description}</p>
                 <div className="flex space-x-2">
                   <Button
                     size="sm"
@@ -418,30 +497,36 @@ const AdminPanel = () => {
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Edit Product</DialogTitle>
+              <DialogDescription>
+                Update the product details below.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="editProductName">Product Name</Label>
+                <Label htmlFor="editProductName">Product Name *</Label>
                 <Input
                   id="editProductName"
                   value={editingProduct.name}
                   onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                  required
                 />
               </div>
               <div>
-                <Label htmlFor="editProductCategory">Category</Label>
+                <Label htmlFor="editProductCategory">Category *</Label>
                 <Input
                   id="editProductCategory"
                   value={editingProduct.category}
                   onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                  required
                 />
               </div>
               <div>
-                <Label htmlFor="editProductDescription">Description</Label>
+                <Label htmlFor="editProductDescription">Description *</Label>
                 <Textarea
                   id="editProductDescription"
                   value={editingProduct.description || ''}
                   onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                  required
                 />
               </div>
               <div>
@@ -467,7 +552,7 @@ const AdminPanel = () => {
                 className="w-full bg-red-600 hover:bg-red-700"
                 disabled={updateProductMutation.isPending}
               >
-                {updateProductMutation.isPending ? 'Updating...' : 'Update Product'}
+                {updateProductMutation.isPending ? 'Updating Product...' : 'Update Product'}
               </Button>
             </div>
           </DialogContent>
