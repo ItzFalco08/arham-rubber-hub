@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Upload, Download, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,34 +8,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
   description: string;
   category: string;
   image: string;
   brochure?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 const AdminPanel = () => {
-  const [products, setProducts] = useState<Product[]>([
-    {
-      id: 1,
-      name: "Pvc Heavy Duty Water Hose",
-      description: "Durable and flexible hose pipe for industrial and agricultural applications.",
-      category: "Water Hose",
-      image: "/api/placeholder/250/200"
-    },
-    {
-      id: 2,
-      name: "Rubber Hydraulic Hose",
-      description: "Reinforced rubber hose designed for high-pressure hydraulic systems.",
-      category: "Hydraulic Hose",
-      image: "/api/placeholder/250/200"
-    }
-  ]);
-
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -48,29 +36,145 @@ const AdminPanel = () => {
     brochure: ''
   });
 
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch products from Supabase
+  const { data: products = [], isLoading, error } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching products:', error);
+        throw error;
+      }
+      
+      return data;
+    },
+    enabled: isAuthenticated,
+  });
+
+  // Add product mutation
+  const addProductMutation = useMutation({
+    mutationFn: async (product: Omit<Product, 'id' | 'created_at' | 'updated_at'>) => {
+      const { data, error } = await supabase
+        .from('products')
+        .insert([product])
+        .select();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Success",
+        description: "Product added successfully",
+      });
+      setNewProduct({ name: '', description: '', category: '', image: '', brochure: '' });
+      setIsAddDialogOpen(false);
+    },
+    onError: (error) => {
+      console.error('Error adding product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add product",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update product mutation
+  const updateProductMutation = useMutation({
+    mutationFn: async (product: Product) => {
+      const { data, error } = await supabase
+        .from('products')
+        .update({
+          name: product.name,
+          description: product.description,
+          category: product.category,
+          image: product.image,
+          brochure: product.brochure,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', product.id)
+        .select();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Success",
+        description: "Product updated successfully",
+      });
+      setEditingProduct(null);
+    },
+    onError: (error) => {
+      console.error('Error updating product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update product",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete product mutation
+  const deleteProductMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Success",
+        description: "Product deleted successfully",
+      });
+    },
+    onError: (error) => {
+      console.error('Error deleting product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     // Simple authentication - in production, this would be handled by your backend
     if (loginForm.username === 'admin' && loginForm.password === 'password') {
       setIsAuthenticated(true);
     } else {
-      alert('Invalid credentials');
+      toast({
+        title: "Error",
+        description: "Invalid credentials",
+        variant: "destructive",
+      });
     }
   };
 
   const handleAddProduct = () => {
     if (newProduct.name && newProduct.description && newProduct.category) {
-      const product: Product = {
-        id: Date.now(),
+      addProductMutation.mutate({
         name: newProduct.name,
         description: newProduct.description,
         category: newProduct.category,
         image: newProduct.image || '/api/placeholder/250/200',
         brochure: newProduct.brochure
-      };
-      setProducts([...products, product]);
-      setNewProduct({ name: '', description: '', category: '', image: '', brochure: '' });
-      setIsAddDialogOpen(false);
+      });
     }
   };
 
@@ -80,16 +184,13 @@ const AdminPanel = () => {
 
   const handleUpdateProduct = () => {
     if (editingProduct) {
-      setProducts(products.map(p => 
-        p.id === editingProduct.id ? editingProduct : p
-      ));
-      setEditingProduct(null);
+      updateProductMutation.mutate(editingProduct);
     }
   };
 
-  const handleDeleteProduct = (id: number) => {
+  const handleDeleteProduct = (id: string) => {
     if (confirm('Are you sure you want to delete this product?')) {
-      setProducts(products.filter(p => p.id !== id));
+      deleteProductMutation.mutate(id);
     }
   };
 
@@ -163,6 +264,17 @@ const AdminPanel = () => {
             </p>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading products...</p>
+        </div>
       </div>
     );
   }
@@ -245,8 +357,12 @@ const AdminPanel = () => {
                     onChange={(e) => handleBrochureUpload(e, 'new')}
                   />
                 </div>
-                <Button onClick={handleAddProduct} className="w-full bg-red-600 hover:bg-red-700">
-                  Add Product
+                <Button 
+                  onClick={handleAddProduct} 
+                  className="w-full bg-red-600 hover:bg-red-700"
+                  disabled={addProductMutation.isPending}
+                >
+                  {addProductMutation.isPending ? 'Adding...' : 'Add Product'}
                 </Button>
               </div>
             </DialogContent>
@@ -258,7 +374,7 @@ const AdminPanel = () => {
             <Card key={product.id} className="hover:shadow-lg transition-shadow">
               <div className="aspect-square overflow-hidden rounded-t-lg">
                 <img 
-                  src={product.image} 
+                  src={product.image || '/api/placeholder/250/200'} 
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />
@@ -280,6 +396,7 @@ const AdminPanel = () => {
                     variant="outline"
                     onClick={() => handleDeleteProduct(product.id)}
                     className="text-red-600 hover:text-red-700"
+                    disabled={deleteProductMutation.isPending}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -323,7 +440,7 @@ const AdminPanel = () => {
                 <Label htmlFor="editProductDescription">Description</Label>
                 <Textarea
                   id="editProductDescription"
-                  value={editingProduct.description}
+                  value={editingProduct.description || ''}
                   onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
                 />
               </div>
@@ -345,8 +462,12 @@ const AdminPanel = () => {
                   onChange={(e) => handleBrochureUpload(e, 'edit')}
                 />
               </div>
-              <Button onClick={handleUpdateProduct} className="w-full bg-red-600 hover:bg-red-700">
-                Update Product
+              <Button 
+                onClick={handleUpdateProduct} 
+                className="w-full bg-red-600 hover:bg-red-700"
+                disabled={updateProductMutation.isPending}
+              >
+                {updateProductMutation.isPending ? 'Updating...' : 'Update Product'}
               </Button>
             </div>
           </DialogContent>

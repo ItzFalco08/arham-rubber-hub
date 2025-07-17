@@ -1,58 +1,32 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Phone, MapPin, Facebook, Twitter, Instagram, Download, Eye, Star, Users, Globe, Award, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const products = [
-    {
-      id: 1,
-      name: "Pvc Heavy Duty Water Hose",
-      description: "Durable and flexible hose pipe for industrial and agricultural applications.",
-      image: "/api/placeholder/250/200",
-      category: "Water Hose"
+  // Fetch products from Supabase
+  const { data: products = [], isLoading, error } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching products:', error);
+        throw error;
+      }
+      
+      return data;
     },
-    {
-      id: 2,
-      name: "Rubber Hydraulic Hose",
-      description: "Reinforced rubber hose designed for high-pressure hydraulic systems.",
-      image: "/api/placeholder/250/200",
-      category: "Hydraulic Hose"
-    },
-    {
-      id: 3,
-      name: "Industrial Rubber Sheets",
-      description: "High-quality rubber sheets used for gaskets, sealing, and industrial applications.",
-      image: "/api/placeholder/250/200",
-      category: "Rubber Sheets"
-    },
-    {
-      id: 4,
-      name: "Electrical Insulating Mats As Per IS 15652 : 2006",
-      description: "Safety mats compliant with IS standards, providing electrical insulation for high-voltage areas.",
-      image: "/api/placeholder/250/200",
-      category: "Safety Mats"
-    },
-    {
-      id: 5,
-      name: "Rubber Anti Slip Mat",
-      description: "Textured anti-slip surface that provides excellent grip in wet and dry conditions.",
-      image: "/api/placeholder/250/200",
-      category: "Safety Mats"
-    },
-    {
-      id: 6,
-      name: "Rubber Water Discharge Hose",
-      description: "Flexible hose for water discharge applications, excellent for dewatering tasks.",
-      image: "/api/placeholder/250/200",
-      category: "Water Hose"
-    }
-  ];
+  });
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -67,6 +41,30 @@ const Index = () => {
   const handleSeeMoreDetails = () => {
     window.location.href = '/contact';
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading products...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Error loading products</p>
+          <Button onClick={() => window.location.reload()} className="bg-red-600 hover:bg-red-700">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -176,7 +174,7 @@ const Index = () => {
               <Card key={product.id} className="group hover:shadow-lg transition-shadow duration-300">
                 <div className="aspect-square overflow-hidden rounded-t-lg">
                   <img 
-                    src={product.image} 
+                    src={product.image || '/api/placeholder/250/200'} 
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
