@@ -5,15 +5,21 @@ import type React from "react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/integrations/supabase/client"
 
 export default function Contact() {
   const [formData, setFormData] = useState({
     name: "",
-    phone: "",
+    email: "",
+    message: "",
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { toast } = useToast()
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
@@ -21,10 +27,79 @@ export default function Contact() {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Form submitted:", formData)
-    // Handle form submission here
+    setIsSubmitting(true)
+    
+    try {
+      // Validate form data
+      if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
+        toast({
+          title: "Validation Error",
+          description: "Please fill in all required fields.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(formData.email)) {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      console.log("Submitting form to Supabase:", formData)
+      
+      // Insert into Supabase
+      const { error } = await supabase
+        .from('contacts')
+        .insert([{
+          name: formData.name.trim(),
+          email: formData.email.trim().toLowerCase(),
+          message: formData.message.trim(),
+          phone: null, // Optional field
+          company: null // Optional field
+        }])
+      
+      if (error) {
+        console.error('Supabase error:', error)
+        toast({
+          title: "Submission Failed",
+          description: "Failed to send message. Please try again.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      console.log("Form submitted successfully to Supabase")
+      
+      // Reset form on success
+      setFormData({
+        name: "",
+        email: "",
+        message: "",
+      })
+      
+      toast({
+        title: "Message sent!",
+        description: "Thank you for contacting us. We'll get back to you soon.",
+      })
+      
+    } catch (error) {
+      console.error("Error submitting form:", error)
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -73,21 +148,33 @@ export default function Contact() {
 
                   <div>
                     <Input
-                      type="tel"
-                      name="phone"
-                      placeholder="Phone number"
-                      value={formData.phone}
+                      type="email"
+                      name="email"
+                      placeholder="Email address"
+                      value={formData.email}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 bg-gray-50 border-0 rounded-lg text-gray-700 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-red-500 transition-all"
                       required
                     />
                   </div>
 
+                  <div>
+                    <Textarea
+                      name="message"
+                      placeholder="Your message"
+                      value={formData.message}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 bg-gray-50 border-0 rounded-lg text-gray-700 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-red-500 transition-all min-h-[120px] resize-none"
+                      required
+                    />
+                  </div>
+
                   <Button
                     type="submit"
-                    className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+                    disabled={isSubmitting}
+                    className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 disabled:opacity-50"
                   >
-                    Submit
+                    {isSubmitting ? "Sending..." : "Submit"}
                   </Button>
                 </form>
               </CardContent>
