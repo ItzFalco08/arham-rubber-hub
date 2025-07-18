@@ -138,25 +138,14 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br">
       {/* Enhanced Modern Header */}
-      <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200/60 sticky top-0 z-50 shadow-sm">
+      <header className=" w-full fixed top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+          <div className="flex justify-between bg-white mt-4 px-4 rounded-[12px] items-center h-20">
             {/* Enhanced Logo */}
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <div className="w-14 h-14 bg-gradient-to-br from-red-600 to-red-700 rounded-2xl flex items-center justify-center text-white font-bold shadow-xl transform hover:scale-105 transition-transform duration-200">
-                  <span className="text-xl">AR</span>
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full border-2 border-white"></div>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent tracking-tight">
-                  ARHAM RUBBER
-                </h1>
-                <p className="text-sm text-slate-500 font-medium tracking-wide">INTERNATIONAL</p>
-              </div>
+            <div className='bg-white py-[3px] px-[12px] rounded-[13px]'>
+              <img src="/images/logo.png" alt="ARHAM RUBBER" width={100} height={56} />
             </div>
 
             {/* Desktop Navigation */}
@@ -184,7 +173,7 @@ const Index = () => {
             </div>
 
             {/* Enhanced Contact Button */}
-            <Button className="hidden md:flex bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-8 py-3 text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 rounded-xl">
+            <Button className="hidden md:flex bg-[#CB4954] text-white px-4 py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 ">
               <Phone className="w-5 h-5 mr-3" />
               Contact now
             </Button>
@@ -284,52 +273,10 @@ const Index = () => {
       </section>
 
       {/* Enhanced About Us Section */}
-      <section id="about" className="py-24 bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-            <div className="space-y-10">
-              <div>
-                <h2 className="text-5xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent mb-8 tracking-tight">
-                  About Us
-                </h2>
-                <div className="w-24 h-2 bg-gradient-to-r from-red-600 to-red-700 rounded-full mb-10"></div>
-              </div>
-              
-              <div className="space-y-8 text-slate-600 leading-relaxed text-lg">
-                <p>
-                  Arham Rubber International, a division of ISO certified American Rubber Industries, is a prominent 
-                  manufacturer and supplier of high performance industrial rubber products. We specialize in producing 
-                  a diverse range of rubber sheets, hoses, and industrial including mats, using advanced rubber 
-                  compounding technology.
-                </p>
-                <p>
-                  Our product range spans across various industrial sectors, from automotive and construction to 
-                  variety of industrial niches for applications such as safety, sealing, chemical transfer, cement discharge, 
-                  sand blasting, hydraulic systems and refrigeration drawing, item. Additionally, we offer specialized 
-                  products like electrical insulation mats and anti-slip mats, ensuring safety and compliance with 
-                  international standards.
-                </p>
-                <p>
-                  Including rubber handling. Dedicated to quality and innovation, Arham Rubber International is 
-                  committed to providing exceptional rubber products for industrial applications worldwide.
-                </p>
-              </div>
-              
-              <Button className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-10 py-4 text-xl font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl transform hover:scale-105">
-                Learn More
-                <ArrowRight className="w-6 h-6 ml-3" />
-              </Button>
-            </div>
-            
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 to-blue-600/20 rounded-3xl transform rotate-3 shadow-2xl"></div>
-              <img 
-                src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" 
-                alt="Industrial rubber manufacturing" 
-                className="relative rounded-3xl shadow-3xl w-full h-auto transform -rotate-1 hover:rotate-0 transition-transform duration-500"
-              />
-            </div>
-          </div>
+      <section id="about" className="py-[72px] px-[120px] bg-white">
+        <div className='w-full flex]'>
+          <h1 className='w-fit text-6xl font-semibold'>About Us</h1>
+          <p className='text-[18px] text-justify'>Arham Rubber International, a division of ISO-certified American Rubber Industries, is a premier manufacturer and supplier of high-performance industrial rubber products. We specialize in producing a diverse range of rubber sheets, hoses, and electrical insulating mats, along with custom rubber molded parts tailored to meet unique client specifications. Our product portfolio includes an extensive variety of industrial hoses for applications such as water, steam, chemical transfer, cement discharge, sand blasting, hydraulic systems, and refrigeration charging lines. Additionally, we offer specialized solutions like composite hoses for tanker loading, stainless steel braided hoses, and rubber profiles including rubber beading. Dedicated to quality and innovation, Arham Rubber International is committed to providing reliable and durable products for industrial applications worldwide.</p>
         </div>
       </section>
 
@@ -340,11 +287,11 @@ const Index = () => {
             <h2 className="text-5xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent mb-8 tracking-tight">
               {searchTerm ? `Search Results for "${searchTerm}"` : 'Best Selling Products'}
             </h2>
-            <div className="w-24 h-2 bg-gradient-to-r from-red-600 to-red-700 rounded-full mx-auto mb-8"></div>
-            <p className="text-2xl text-slate-600 max-w-4xl mx-auto leading-relaxed">
+            {/* <div className="w-24 h-2 bg-gradient-to-r from-red-600 to-red-700 rounded-full mx-auto mb-8"></div> */}
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
               {searchTerm 
                 ? `Found ${filteredProducts.length} product${filteredProducts.length !== 1 ? 's' : ''}`
-                : 'Flexible Rubber Solutions for Every Industry - Engineered to Perform, Built to Last!'
+                : '"Reliable Rubber Solutions for Every Industry—Engineered to Perform, Built to Last!"'
               }
             </p>
           </div>
@@ -375,44 +322,47 @@ const Index = () => {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 {displayedProducts.map((product) => (
-                  <Card key={product.id} className="group hover:shadow-3xl transition-all duration-500 border-0 shadow-lg hover:-translate-y-3 bg-gradient-to-br from-white to-slate-50 rounded-2xl overflow-hidden">
-                    <div className="aspect-square overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-100 to-slate-200">
-                      <img 
-                        src={product.image || '/api/placeholder/300/300'} 
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                      />
-                    </div>
+                  <Card key={product.id} className="group  hover:shadow-3xl transition-all duration-500 border-0 shadow-lg hover:-translate-y-3 bg-gradient-to-br from-white to-slate-50 rounded-2xl overflow-hidden">
+                    <div className=" flex gap-2 ov rounded-t-2xl bg-gradient-to-br from-slate-100 to-slate-200">
                     <CardContent className="p-6 space-y-4">
-                      <Badge className="bg-gradient-to-r from-red-100 to-red-200 text-red-800 hover:from-red-200 hover:to-red-300 text-sm font-semibold px-3 py-1 rounded-full">
-                        {product.category}
-                      </Badge>
+                
                       <h3 className="text-xl font-bold text-slate-800 group-hover:text-red-600 transition-colors duration-300 leading-tight">
                         {product.name}
                       </h3>
+                      {/* <Badge className="bg-gradient-to-r from-red-100 to-red-200 text-red-800 hover:from-red-200 hover:to-red-300 text-sm font-semibold px-3 py-1 rounded-full">
+                        {product.category}
+                      </Badge> */}
                       <p className="text-slate-600 line-clamp-3 leading-relaxed">
                         {product.description}
                       </p>
+
                       <div className="flex flex-col sm:flex-row gap-3 pt-4">
                         <Button 
                           variant="outline" 
                           size="sm" 
                           onClick={handleSeeMoreDetails}
-                          className="flex-1 hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-all duration-300 rounded-xl border-2 font-semibold"
+                          className="flex-1 bg-gray-50 p-2 border-red-300 text-slate-700 transition-all duration-300 rounded-lg border-2 font-semibold"
                         >
-                          <Eye className="w-4 h-4 mr-2" />
-                          Details
+                          {/* <Eye className="w-4 h-4 mr-2" /> */}
+                          See More Details
                         </Button>
-                        <Button 
+                        {/* <Button 
                           size="sm" 
                           onClick={() => handleDownloadBrochure(product)}
                           className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-semibold"
                         >
                           <Download className="w-4 h-4 mr-2" />
                           Brochure
-                        </Button>
+                        </Button> */}
                       </div>
                     </CardContent>
+                      <img 
+                        src={ 'https://lipsum.app/640x480/'} 
+                        // src={product.image || '/api/placeholder/300/300'} 
+                        alt={product.name}
+                        className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700"
+                      />
+                    </div>
                   </Card>
                 ))}
               </div>

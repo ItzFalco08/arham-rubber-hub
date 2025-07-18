@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { uploadFile, deleteFile, validateFile } from '@/lib/fileUpload';
 import { 
   Plus, 
   Edit2, 
@@ -27,7 +28,9 @@ import {
   Package,
   Shield,
   LogOut,
-  UserCheck
+  UserCheck,
+  Image,
+  FileUp
 } from 'lucide-react';
 
 const AdminPanel = () => {
@@ -42,7 +45,12 @@ const AdminPanel = () => {
     image: '',
     brochure: ''
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [brochureFile, setBrochureFile] = useState<File | null>(null);
   const [globalPdfFile, setGlobalPdfFile] = useState('');
+  const [globalPdfUpload, setGlobalPdfUpload] = useState<File | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingBrochure, setUploadingBrochure] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showCredentials, setShowCredentials] = useState(false);
 
@@ -171,6 +179,8 @@ const AdminPanel = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
       setProductForm({ name: '', category: '', description: '', image: '', brochure: '' });
+      setImageFile(null);
+      setBrochureFile(null);
       setShowAddForm(false);
       toast({
         title: "Success! ✅",
@@ -221,6 +231,8 @@ const AdminPanel = () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       setEditingProduct(null);
       setProductForm({ name: '', category: '', description: '', image: '', brochure: '' });
+      setImageFile(null);
+      setBrochureFile(null);
       toast({
         title: "Success! ✅",
         description: "Product updated successfully",
@@ -353,8 +365,90 @@ const AdminPanel = () => {
     }));
   };
 
-  const handleAddProduct = () => {
-    addProductMutation.mutate(productForm);
+  // File upload handlers
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const error = validateFile(file, 'image', 5); // 5MB limit for images
+      if (error) {
+        toast({
+          title: "Invalid Image File",
+          description: error,
+          variant: "destructive",
+        });
+        return;
+      }
+      setImageFile(file);
+    }
+  };
+
+  const handleBrochureFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const error = validateFile(file, 'pdf', 10); // 10MB limit for PDFs
+      if (error) {
+        toast({
+          title: "Invalid PDF File",
+          description: error,
+          variant: "destructive",
+        });
+        return;
+      }
+      setBrochureFile(file);
+    }
+  };
+
+  const handleGlobalPdfFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const error = validateFile(file, 'pdf', 10); // 10MB limit for PDFs
+      if (error) {
+        toast({
+          title: "Invalid PDF File",
+          description: error,
+          variant: "destructive",
+        });
+        return;
+      }
+      setGlobalPdfUpload(file);
+    }
+  };
+
+  const handleAddProduct = async () => {
+    try {
+      let imageUrl = productForm.image;
+      let brochureUrl = productForm.brochure;
+
+      // Upload image if file is selected
+      if (imageFile) {
+        setUploadingImage(true);
+        imageUrl = await uploadFile(imageFile, 'product-images');
+      }
+
+      // Upload brochure if file is selected
+      if (brochureFile) {
+        setUploadingBrochure(true);
+        brochureUrl = await uploadFile(brochureFile, 'product-brochures');
+      }
+
+      // Update the product form with uploaded URLs
+      const productData = {
+        ...productForm,
+        image: imageUrl,
+        brochure: brochureUrl
+      };
+
+      addProductMutation.mutate(productData);
+    } catch (error) {
+      toast({
+        title: "Upload Error",
+        description: "Failed to upload files. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImage(false);
+      setUploadingBrochure(false);
+    }
   };
 
   const handleEditProduct = (product: any) => {
@@ -369,15 +463,66 @@ const AdminPanel = () => {
     setShowAddForm(true);
   };
 
-  const handleUpdateProduct = () => {
-    if (editingProduct) {
-      updateProductMutation.mutate({ id: editingProduct.id, product: productForm });
+  const handleUpdateProduct = async () => {
+    if (!editingProduct) return;
+
+    try {
+      let imageUrl = productForm.image;
+      let brochureUrl = productForm.brochure;
+
+      // Upload new image if file is selected
+      if (imageFile) {
+        setUploadingImage(true);
+        // Delete old image if exists
+        if (editingProduct.image) {
+          try {
+            await deleteFile(editingProduct.image, 'product-images');
+          } catch (deleteError) {
+            console.warn('Could not delete old image:', deleteError);
+          }
+        }
+        imageUrl = await uploadFile(imageFile, 'product-images');
+      }
+
+      // Upload new brochure if file is selected
+      if (brochureFile) {
+        setUploadingBrochure(true);
+        // Delete old brochure if exists
+        if (editingProduct.brochure) {
+          try {
+            await deleteFile(editingProduct.brochure, 'product-brochures');
+          } catch (deleteError) {
+            console.warn('Could not delete old brochure:', deleteError);
+          }
+        }
+        brochureUrl = await uploadFile(brochureFile, 'product-brochures');
+      }
+
+      // Update the product form with uploaded URLs
+      const productData = {
+        ...productForm,
+        image: imageUrl,
+        brochure: brochureUrl
+      };
+
+      updateProductMutation.mutate({ id: editingProduct.id, product: productData });
+    } catch (error) {
+      toast({
+        title: "Upload Error",
+        description: "Failed to upload files. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImage(false);
+      setUploadingBrochure(false);
     }
   };
 
   const handleCancelEdit = () => {
     setEditingProduct(null);
     setProductForm({ name: '', category: '', description: '', image: '', brochure: '' });
+    setImageFile(null);
+    setBrochureFile(null);
     setShowAddForm(false);
   };
 
@@ -393,9 +538,25 @@ const AdminPanel = () => {
     }
   };
 
-  const handleUpdateGlobalPdf = () => {
-    if (globalPdfFile) {
-      updateGlobalPdfMutation.mutate(globalPdfFile);
+  const handleUpdateGlobalPdf = async () => {
+    try {
+      let pdfUrl = globalPdfFile;
+
+      // Upload file if selected
+      if (globalPdfUpload) {
+        pdfUrl = await uploadFile(globalPdfUpload, 'product-brochures');
+      }
+
+      if (pdfUrl) {
+        updateGlobalPdfMutation.mutate(pdfUrl);
+        setGlobalPdfUpload(null);
+      }
+    } catch (error) {
+      toast({
+        title: "Upload Error",
+        description: "Failed to upload PDF. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -616,38 +777,74 @@ const AdminPanel = () => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3">
-                      <label className="text-sm font-semibold text-slate-700">Image URL</label>
-                      <Input
-                        name="image"
-                        value={productForm.image}
-                        onChange={handleProductFormChange}
-                        placeholder="Enter image URL"
-                        className="border-2 focus:border-red-500 transition-colors duration-200 h-12 rounded-xl"
-                      />
+                      <label className="text-sm font-semibold text-slate-700 flex items-center">
+                        <Image className="w-4 h-4 mr-2" />
+                        Product Image (JPEG, PNG, WebP - Max 5MB)
+                      </label>
+                      <div className="space-y-2">
+                        <Input
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                          onChange={handleImageFileChange}
+                          className="border-2 focus:border-red-500 transition-colors duration-200 h-12 rounded-xl file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                        />
+                        {imageFile && (
+                          <p className="text-sm text-green-600 font-medium">
+                            📁 Selected: {imageFile.name}
+                          </p>
+                        )}
+                        {productForm.image && !imageFile && (
+                          <p className="text-sm text-slate-600">
+                            🖼️ Current: <span className="font-mono text-xs">{productForm.image.split('/').pop()}</span>
+                          </p>
+                        )}
+                      </div>
                     </div>
                     <div className="space-y-3">
-                      <label className="text-sm font-semibold text-slate-700">Brochure URL</label>
-                      <Input
-                        name="brochure"
-                        value={productForm.brochure}
-                        onChange={handleProductFormChange}
-                        placeholder="Enter brochure URL"
-                        className="border-2 focus:border-red-500 transition-colors duration-200 h-12 rounded-xl"
-                      />
+                      <label className="text-sm font-semibold text-slate-700 flex items-center">
+                        <FileUp className="w-4 h-4 mr-2" />
+                        Product Brochure (PDF - Max 10MB)
+                      </label>
+                      <div className="space-y-2">
+                        <Input
+                          type="file"
+                          accept="application/pdf"
+                          onChange={handleBrochureFileChange}
+                          className="border-2 focus:border-red-500 transition-colors duration-200 h-12 rounded-xl file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                        />
+                        {brochureFile && (
+                          <p className="text-sm text-green-600 font-medium">
+                            📁 Selected: {brochureFile.name}
+                          </p>
+                        )}
+                        {productForm.brochure && !brochureFile && (
+                          <p className="text-sm text-slate-600">
+                            📄 Current: <span className="font-mono text-xs">{productForm.brochure.split('/').pop()}</span>
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                   
                   <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 pt-6">
                     <Button 
                       onClick={editingProduct ? handleUpdateProduct : handleAddProduct}
-                      disabled={addProductMutation.isPending || updateProductMutation.isPending}
+                      disabled={addProductMutation.isPending || updateProductMutation.isPending || uploadingImage || uploadingBrochure}
                       className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-8 py-3 text-lg font-semibold rounded-xl transform hover:scale-105 transition-all duration-200"
                     >
-                      {editingProduct ? 'Update Product' : 'Add Product'}
+                      {uploadingImage || uploadingBrochure ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Uploading...</span>
+                        </div>
+                      ) : (
+                        editingProduct ? 'Update Product' : 'Add Product'
+                      )}
                     </Button>
                     <Button 
                       onClick={handleCancelEdit}
                       variant="outline"
+                      disabled={uploadingImage || uploadingBrochure}
                       className="hover:bg-slate-50 px-8 py-3 text-lg font-semibold rounded-xl border-2"
                     >
                       Cancel
@@ -829,13 +1026,32 @@ const AdminPanel = () => {
               </CardHeader>
               <CardContent className="space-y-8">
                 <div className="space-y-4">
-                  <label className="text-sm font-semibold text-slate-700">PDF URL</label>
+                  <label className="text-sm font-semibold text-slate-700 flex items-center">
+                    <FileUp className="w-4 h-4 mr-2" />
+                    Upload Global PDF Brochure (PDF - Max 10MB)
+                  </label>
+                  <div className="space-y-2">
+                    <Input
+                      type="file"
+                      accept="application/pdf"
+                      onChange={handleGlobalPdfFileChange}
+                      className="border-2 focus:border-red-500 transition-colors duration-200 h-14 rounded-xl text-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                    />
+                    {globalPdfUpload && (
+                      <p className="text-sm text-green-600 font-medium">
+                        📁 Selected: {globalPdfUpload.name}
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-sm text-slate-500">
+                    Or enter a URL directly:
+                  </div>
                   <Input
                     type="url"
                     value={globalPdfFile}
                     onChange={(e) => setGlobalPdfFile(e.target.value)}
                     placeholder="Enter global PDF brochure URL"
-                    className="border-2 focus:border-red-500 transition-colors duration-200 h-14 rounded-xl text-lg"
+                    className="border-2 focus:border-red-500 transition-colors duration-200 h-12 rounded-xl"
                   />
                 </div>
                 
@@ -859,11 +1075,20 @@ const AdminPanel = () => {
                 
                 <Button 
                   onClick={handleUpdateGlobalPdf}
-                  disabled={!globalPdfFile || updateGlobalPdfMutation.isPending}
+                  disabled={(!globalPdfFile && !globalPdfUpload) || updateGlobalPdfMutation.isPending}
                   className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-8 py-3 text-lg font-semibold rounded-xl transform hover:scale-105 transition-all duration-200"
                 >
-                  <Upload className="w-5 h-5 mr-3" />
-                  Update Global PDF
+                  {updateGlobalPdfMutation.isPending ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Uploading...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-5 h-5 mr-3" />
+                      Update Global PDF
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
