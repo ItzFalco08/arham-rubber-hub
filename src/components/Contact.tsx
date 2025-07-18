@@ -103,7 +103,7 @@ export default function Contact() {
   }
 
   return (
-    <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-[46rem] flex items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div
         className="hidden md:block absolute inset-0 bg-cover bg-center bg-no-repeat"

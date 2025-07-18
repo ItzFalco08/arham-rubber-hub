@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from './ui/button'
 import { Phone, X, Menu } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
@@ -6,6 +6,17 @@ import { useNavigate } from 'react-router-dom'
 function Header() {
     const navigate = useNavigate();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isVisible, setIsVisible] = useState(false);
+    
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollPosition = window.scrollY;
+            setIsVisible(scrollPosition > 200);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
     
     const scrollToSection = (sectionId: string) => {
         // If we're already on the home page, just scroll
@@ -39,7 +50,9 @@ function Header() {
     };
         
     return (
-        <header className=" w-full fixed top-0 z-50 shadow-sm">
+        <header className={`w-full fixed top-0 z-50 shadow-sm transition-all duration-300 ease-in-out ${
+            isVisible ? 'h-auto opacity-100' : 'h-0 opacity-0 overflow-hidden'
+        }`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between bg-white mt-4 px-4 rounded-[12px] items-center h-20">
                     {/* Enhanced Logo */}
@@ -85,7 +98,7 @@ function Header() {
                 </div>
 
                 {/* Mobile Navigation */}
-                {isMobileMenuOpen && (
+                {isMobileMenuOpen && isVisible && (
                     <div className="md:hidden border-t border-slate-200 py-6 space-y-6 bg-white/95 backdrop-blur-sm">
                     <button 
                         onClick={() => {

@@ -220,7 +220,7 @@ const Index = () => {
                                         className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-semibold"
                                       >
                                         <Download className="w-4 h-4 mr-2" />
-                                        Brochure
+                                         catalogue
                                       </Button>
                                   </div>
                               </CardContent>

@@ -14,7 +14,6 @@ import {
   Edit2, 
   Trash2, 
   Download, 
-  Upload, 
   Eye, 
   EyeOff, 
   User, 
@@ -22,8 +21,6 @@ import {
   Building, 
   Phone, 
   MessageSquare,
-  FileText,
-  Settings,
   Users,
   Package,
   Shield,
@@ -37,7 +34,14 @@ const AdminPanel = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [editingProduct, setEditingProduct] = useState<{
+    id: string;
+    name: string;
+    category: string;
+    description?: string;
+    image?: string;
+    brochure?: string;
+  } | null>(null);
   const [productForm, setProductForm] = useState({
     name: '',
     category: '',
@@ -47,8 +51,6 @@ const AdminPanel = () => {
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [brochureFile, setBrochureFile] = useState<File | null>(null);
-  const [globalPdfFile, setGlobalPdfFile] = useState('');
-  const [globalPdfUpload, setGlobalPdfUpload] = useState<File | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingBrochure, setUploadingBrochure] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -127,26 +129,6 @@ const AdminPanel = () => {
     enabled: isAuthenticated,
   });
 
-  // Fetch global PDF setting
-  const { data: globalPdfSetting } = useQuery({
-    queryKey: ['globalPdf'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('settings')
-        .select('*')
-        .eq('key', 'global_pdf')
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Error fetching global PDF setting:', error);
-        return null;
-      }
-      
-      return data;
-    },
-    enabled: isAuthenticated,
-  });
-
   // Product mutations
   const addProductMutation = useMutation({
     mutationFn: async (product: typeof productForm) => {
@@ -187,7 +169,7 @@ const AdminPanel = () => {
         description: "Product added successfully",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Add product error:', error);
       toast({
         title: "Error ❌",
@@ -238,7 +220,7 @@ const AdminPanel = () => {
         description: "Product updated successfully",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Update product error:', error);
       toast({
         title: "Error ❌",
@@ -271,7 +253,7 @@ const AdminPanel = () => {
         description: "Product deleted successfully",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Delete product error:', error);
       toast({
         title: "Error ❌",
@@ -304,53 +286,11 @@ const AdminPanel = () => {
         description: "Contact deleted successfully",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Delete contact error:', error);
       toast({
         title: "Error ❌",
         description: "Failed to delete contact",
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Global PDF mutation
-  const updateGlobalPdfMutation = useMutation({
-    mutationFn: async (pdfUrl: string) => {
-      console.log('Updating global PDF:', pdfUrl);
-      
-      const { data, error } = await supabase
-        .from('settings')
-        .upsert({
-          key: 'global_pdf',
-          value: pdfUrl,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'key'
-        })
-        .select();
-      
-      if (error) {
-        console.error('Error updating global PDF:', error);
-        throw error;
-      }
-      
-      console.log('Global PDF updated successfully:', data);
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['globalPdf'] });
-      setGlobalPdfFile('');
-      toast({
-        title: "Success! ✅",
-        description: "Global PDF updated successfully",
-      });
-    },
-    onError: (error: any) => {
-      console.error('Global PDF update error:', error);
-      toast({
-        title: "Error ❌",
-        description: "Failed to update global PDF",
         variant: "destructive",
       });
     }
@@ -398,22 +338,6 @@ const AdminPanel = () => {
     }
   };
 
-  const handleGlobalPdfFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const error = validateFile(file, 'pdf', 10); // 10MB limit for PDFs
-      if (error) {
-        toast({
-          title: "Invalid PDF File",
-          description: error,
-          variant: "destructive",
-        });
-        return;
-      }
-      setGlobalPdfUpload(file);
-    }
-  };
-
   const handleAddProduct = async () => {
     try {
       let imageUrl = productForm.image;
@@ -451,7 +375,14 @@ const AdminPanel = () => {
     }
   };
 
-  const handleEditProduct = (product: any) => {
+  const handleEditProduct = (product: {
+    id: string;
+    name: string;
+    category: string;
+    description?: string;
+    image?: string;
+    brochure?: string;
+  }) => {
     setEditingProduct(product);
     setProductForm({
       name: product.name,
@@ -535,28 +466,6 @@ const AdminPanel = () => {
   const handleDeleteContact = (id: string) => {
     if (confirm('Are you sure you want to delete this contact? This action cannot be undone.')) {
       deleteContactMutation.mutate(id);
-    }
-  };
-
-  const handleUpdateGlobalPdf = async () => {
-    try {
-      let pdfUrl = globalPdfFile;
-
-      // Upload file if selected
-      if (globalPdfUpload) {
-        pdfUrl = await uploadFile(globalPdfUpload, 'product-brochures');
-      }
-
-      if (pdfUrl) {
-        updateGlobalPdfMutation.mutate(pdfUrl);
-        setGlobalPdfUpload(null);
-      }
-    } catch (error) {
-      toast({
-        title: "Upload Error",
-        description: "Failed to upload PDF. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -676,7 +585,7 @@ const AdminPanel = () => {
             <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
               Admin Dashboard
             </h1>
-            <p className="text-slate-600 text-lg">Manage products, contacts, and global settings</p>
+            <p className="text-slate-600 text-lg">Manage products and contacts</p>
           </div>
           <Button 
             onClick={handleLogout}
@@ -690,7 +599,7 @@ const AdminPanel = () => {
 
         {/* Enhanced Tabs */}
         <Tabs defaultValue="products" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-3 lg:w-[500px] h-16 bg-white shadow-lg rounded-2xl border-2">
+          <TabsList className="grid w-full grid-cols-2 lg:w-[400px] h-16 bg-white shadow-lg rounded-2xl border-2">
             <TabsTrigger value="products" className="flex items-center space-x-3 text-lg font-semibold h-12 rounded-xl">
               <Package className="w-5 h-5" />
               <span>Products</span>
@@ -698,10 +607,6 @@ const AdminPanel = () => {
             <TabsTrigger value="contacts" className="flex items-center space-x-3 text-lg font-semibold h-12 rounded-xl">
               <Users className="w-5 h-5" />
               <span>Contacts</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center space-x-3 text-lg font-semibold h-12 rounded-xl">
-              <Settings className="w-5 h-5" />
-              <span>Settings</span>
             </TabsTrigger>
           </TabsList>
 
@@ -912,12 +817,12 @@ const AdminPanel = () => {
                             Delete
                           </Button>
                         </div>
-                        {(product.brochure || globalPdfSetting?.value) && (
+                        {product.brochure && (
                           <Button 
                             size="sm" 
                             variant="outline" 
                             className="w-full text-sm hover:bg-green-50 hover:border-green-300 border-2 rounded-xl font-semibold"
-                            onClick={() => downloadPdf(product.brochure || globalPdfSetting?.value || '', `${product.name}-brochure.pdf`)}
+                            onClick={() => downloadPdf(product.brochure, `${product.name}-brochure.pdf`)}
                           >
                             <Download className="w-4 h-4 mr-2" />
                             Download PDF
@@ -1005,93 +910,6 @@ const AdminPanel = () => {
                 ))
               )}
             </div>
-          </TabsContent>
-
-          {/* Enhanced Settings Tab */}
-          <TabsContent value="settings" className="space-y-8">
-            <div>
-              <h2 className="text-3xl font-bold text-slate-800">Global Settings</h2>
-              <p className="text-slate-600 text-lg mt-2">Manage global configurations and preferences</p>
-            </div>
-            
-            <Card className="shadow-2xl border-0 bg-gradient-to-br from-white to-blue-50 rounded-2xl">
-              <CardHeader>
-                <CardTitle className="flex items-center text-slate-800 text-2xl font-bold">
-                  <FileText className="w-7 h-7 mr-3 text-red-600" />
-                  Global PDF Brochure
-                </CardTitle>
-                <p className="text-slate-600 text-lg leading-relaxed">
-                  Set a default PDF brochure that will be used for products without individual brochures
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-8">
-                <div className="space-y-4">
-                  <label className="text-sm font-semibold text-slate-700 flex items-center">
-                    <FileUp className="w-4 h-4 mr-2" />
-                    Upload Global PDF Brochure (PDF - Max 10MB)
-                  </label>
-                  <div className="space-y-2">
-                    <Input
-                      type="file"
-                      accept="application/pdf"
-                      onChange={handleGlobalPdfFileChange}
-                      className="border-2 focus:border-red-500 transition-colors duration-200 h-14 rounded-xl text-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
-                    />
-                    {globalPdfUpload && (
-                      <p className="text-sm text-green-600 font-medium">
-                        📁 Selected: {globalPdfUpload.name}
-                      </p>
-                    )}
-                  </div>
-                  <div className="text-sm text-slate-500">
-                    Or enter a URL directly:
-                  </div>
-                  <Input
-                    type="url"
-                    value={globalPdfFile}
-                    onChange={(e) => setGlobalPdfFile(e.target.value)}
-                    placeholder="Enter global PDF brochure URL"
-                    className="border-2 focus:border-red-500 transition-colors duration-200 h-12 rounded-xl"
-                  />
-                </div>
-                
-                {globalPdfSetting?.value && (
-                  <div className="p-6 bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl border-2 border-slate-200">
-                    <p className="text-sm text-slate-700 font-semibold mb-3">📄 Current Global PDF:</p>
-                    <p className="text-sm text-slate-600 break-all mb-6 font-mono bg-white p-3 rounded-xl">
-                      {globalPdfSetting.value}
-                    </p>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => downloadPdf(globalPdfSetting.value, 'global-brochure.pdf')}
-                      className="hover:bg-green-50 hover:border-green-300 px-6 py-3 text-lg font-semibold rounded-xl border-2 transform hover:scale-105 transition-all duration-200"
-                    >
-                      <Download className="w-5 h-5 mr-2" />
-                      Download Current PDF
-                    </Button>
-                  </div>
-                )}
-                
-                <Button 
-                  onClick={handleUpdateGlobalPdf}
-                  disabled={(!globalPdfFile && !globalPdfUpload) || updateGlobalPdfMutation.isPending}
-                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-8 py-3 text-lg font-semibold rounded-xl transform hover:scale-105 transition-all duration-200"
-                >
-                  {updateGlobalPdfMutation.isPending ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Uploading...</span>
-                    </div>
-                  ) : (
-                    <>
-                      <Upload className="w-5 h-5 mr-3" />
-                      Update Global PDF
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </div>
