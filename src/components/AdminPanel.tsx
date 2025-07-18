@@ -112,7 +112,7 @@ const AdminPanel = () => {
         .from('settings')
         .select('*')
         .eq('key', 'global_pdf')
-        .single();
+        .maybeSingle();
       
       if (error) {
         console.error('Error fetching global PDF setting:', error);
@@ -299,6 +299,8 @@ const AdminPanel = () => {
   const updateGlobalPdfMutation = useMutation({
     mutationFn: async (pdfUrl: string) => {
       console.log('Updating global PDF:', pdfUrl);
+      
+      // First try to update existing record
       const { data, error } = await supabase
         .from('settings')
         .update({
@@ -312,6 +314,26 @@ const AdminPanel = () => {
         console.error('Error updating global PDF:', error);
         throw error;
       }
+      
+      // If no rows were updated, insert a new record
+      if (!data || data.length === 0) {
+        const { data: insertData, error: insertError } = await supabase
+          .from('settings')
+          .insert([{
+            key: 'global_pdf',
+            value: pdfUrl
+          }])
+          .select();
+        
+        if (insertError) {
+          console.error('Error inserting global PDF:', insertError);
+          throw insertError;
+        }
+        
+        console.log('Global PDF inserted successfully:', insertData);
+        return insertData;
+      }
+      
       console.log('Global PDF updated successfully:', data);
       return data;
     },
@@ -427,6 +449,13 @@ const AdminPanel = () => {
     if (globalPdfFile) {
       updateGlobalPdfMutation.mutate(globalPdfFile);
     }
+  };
+
+  const downloadPdf = (pdfUrl: string, fileName: string) => {
+    const link = document.createElement('a');
+    link.href = pdfUrl;
+    link.download = fileName;
+    link.click();
   };
 
   if (!isAuthenticated) {
@@ -636,7 +665,12 @@ const AdminPanel = () => {
                           <span className="hidden sm:inline">Delete</span>
                         </Button>
                         {(product.brochure || globalPdfSetting?.value) && (
-                          <Button size="sm" variant="outline" className="flex-1 min-w-0">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="flex-1 min-w-0"
+                            onClick={() => downloadPdf(product.brochure || globalPdfSetting?.value || '', `${product.name}-brochure.pdf`)}
+                          >
                             <Download className="w-4 h-4 mr-1" />
                             <span className="hidden sm:inline">PDF</span>
                           </Button>
