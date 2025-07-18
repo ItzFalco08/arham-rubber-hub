@@ -115,25 +115,6 @@ const Index = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center space-y-6">
-          <div className="relative">
-            <div className="w-20 h-20 border-4 border-red-600/20 border-t-red-600 rounded-full animate-spin mx-auto"></div>
-            <div className="absolute inset-0 w-16 h-16 border-4 border-blue-600/20 border-b-blue-600 rounded-full animate-spin mx-auto mt-2 ml-2"></div>
-          </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-red-600 to-blue-600 bg-clip-text text-transparent">
-              Loading Products
-            </h2>
-            <p className="text-slate-600">Please wait while we fetch the latest products...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center">
@@ -368,7 +349,11 @@ const Index = () => {
             </p>
           </div>
           
-          {filteredProducts.length === 0 && searchTerm ? (
+          {isLoading ? (
+            <div className="text-center py-24">
+              <div className="w-16 h-16 border-4 border-red-600/20 border-t-red-600 rounded-full animate-spin mx-auto"></div>
+            </div>
+          ) : filteredProducts.length === 0 && searchTerm ? (
             <div className="text-center py-24">
               <div className="w-32 h-32 mx-auto mb-8 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full flex items-center justify-center shadow-xl">
                 <Search className="w-16 h-16 text-slate-400" />
