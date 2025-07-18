@@ -3,7 +3,7 @@ import { Button } from './ui/button'
 import { Phone, X, Menu } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-function Header() {
+function Header({isHidden}: {isHidden: boolean}) {
     const navigate = useNavigate();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
@@ -50,8 +50,11 @@ function Header() {
     };
         
     return (
-        <header className={`w-full fixed top-0 z-50 shadow-sm transition-all duration-300 ease-in-out ${
-            isVisible ? 'h-auto opacity-100' : 'h-0 opacity-0 overflow-hidden'
+        <header className={`w-full fixed top-0 z-50 shadow-sm transition-all duration-300 ease-in-out 
+        ${
+            isHidden ? (
+                isVisible ? 'h-auto opacity-100' : 'h-0 opacity-0 overflow-hidden'
+            ) : "h-auto opacity-100"
         }`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between bg-white mt-4 px-4 rounded-[12px] items-center h-20">

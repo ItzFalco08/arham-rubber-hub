@@ -139,7 +139,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br">
       {/* Enhanced Modern Header */}
-      <Header />
+      <Header isHidden={true} />
 
       {/* Enhanced Hero Section with Modern Design */}
       <Hero isSearching={isSearching} handleSearch={handleSearch} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />

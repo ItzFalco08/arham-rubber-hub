@@ -7,7 +7,7 @@ const Contact = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Enhanced Header */}
-      <Header/>
+      <Header isHidden={false}/>
 
       {/* Enhanced Contact Section */}
       <ContactForm/>
