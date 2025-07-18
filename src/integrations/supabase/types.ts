@@ -14,12 +14,43 @@ export type Database = {
   }
   public: {
     Tables: {
+      contacts: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          name: string
+          phone: string | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          name: string
+          phone?: string | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          name?: string
+          phone?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           brochure: string | null
           category: string
           created_at: string
           description: string | null
+          global_pdf: string | null
           id: string
           image: string | null
           name: string
@@ -30,6 +61,7 @@ export type Database = {
           category: string
           created_at?: string
           description?: string | null
+          global_pdf?: string | null
           id?: string
           image?: string | null
           name: string
@@ -40,10 +72,35 @@ export type Database = {
           category?: string
           created_at?: string
           description?: string | null
+          global_pdf?: string | null
           id?: string
           image?: string | null
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string | null
         }
         Relationships: []
       }

@@ -4,14 +4,21 @@ import { Phone, MapPin, Facebook, Twitter, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
-    phone: ''
+    phone: '',
+    email: '',
+    company: '',
+    message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -19,12 +26,70 @@ const Contact = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Here you would typically send the data to your backend
-    alert('Thank you for contacting us! We will get back to you soon.');
-    setFormData({ name: '', phone: '' });
+    setIsSubmitting(true);
+    
+    try {
+      console.log('Submitting contact form:', formData);
+      
+      // Validate required fields
+      if (!formData.name.trim()) {
+        toast({
+          title: "Error",
+          description: "Name is required",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!formData.email.trim()) {
+        toast({
+          title: "Error",
+          description: "Email is required",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('contacts')
+        .insert([{
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim() || null,
+          company: formData.company.trim() || null,
+          message: formData.message.trim() || null
+        }]);
+
+      if (error) {
+        console.error('Error submitting contact form:', error);
+        toast({
+          title: "Error",
+          description: "Failed to submit form. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Contact form submitted successfully');
+      toast({
+        title: "Success",
+        description: "Thank you for contacting us! We will get back to you soon.",
+      });
+      
+      // Reset form
+      setFormData({ name: '', phone: '', email: '', company: '', message: '' });
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit form. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -45,8 +110,8 @@ const Contact = () => {
               </div>
             </div>
             <nav className="hidden md:flex space-x-8">
-              <a href="#products" className="text-gray-700 hover:text-red-600 transition-colors">Our Products</a>
-              <a href="#about" className="text-gray-700 hover:text-red-600 transition-colors">About us</a>
+              <a href="/#products" className="text-gray-700 hover:text-red-600 transition-colors">Our Products</a>
+              <a href="/#about" className="text-gray-700 hover:text-red-600 transition-colors">About us</a>
             </nav>
             <Button 
               className="bg-red-600 hover:bg-red-700 text-white"
@@ -65,7 +130,7 @@ const Contact = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             
             {/* Left side - Industrial worker image */}
-            <div className="relative h-[600px] rounded-lg overflow-hidden">
+            <div className="relative h-[400px] sm:h-[500px] lg:h-[600px] rounded-lg overflow-hidden">
               <img 
                 src="/api/placeholder/600/600" 
                 alt="Industrial worker with tools" 
@@ -77,23 +142,35 @@ const Contact = () => {
             {/* Right side - Contact form */}
             <div className="flex justify-center">
               <Card className="w-full max-w-md shadow-lg">
-                <CardContent className="p-8">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Reach Us</h2>
+                <CardContent className="p-6 sm:p-8">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 text-center">Reach Us</h2>
                   
                   <div className="mb-6">
-                    <p className="text-gray-600 text-center leading-relaxed">
+                    <p className="text-gray-600 text-center leading-relaxed text-sm sm:text-base">
                       No 83/1, Madukkarai Road, Kurichi, Madukkarai, 
                       Coimbatore-641021, Tamil Nadu, India
                     </p>
                   </div>
 
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                  <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                     <div>
                       <Input
                         type="text"
                         name="name"
-                        placeholder="Name"
+                        placeholder="Name *"
                         value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <Input
+                        type="email"
+                        name="email"
+                        placeholder="Email *"
+                        value={formData.email}
                         onChange={handleInputChange}
                         required
                         className="w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
@@ -107,16 +184,38 @@ const Contact = () => {
                         placeholder="Phone number"
                         value={formData.phone}
                         onChange={handleInputChange}
-                        required
                         className="w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <Input
+                        type="text"
+                        name="company"
+                        placeholder="Company"
+                        value={formData.company}
+                        onChange={handleInputChange}
+                        className="w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <textarea
+                        name="message"
+                        placeholder="Message"
+                        value={formData.message}
+                        onChange={handleInputChange}
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
                       />
                     </div>
 
                     <Button
                       type="submit"
                       className="w-full h-12 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md transition-colors"
+                      disabled={isSubmitting}
                     >
-                      Submit
+                      {isSubmitting ? 'Submitting...' : 'Submit'}
                     </Button>
                   </form>
                 </CardContent>
