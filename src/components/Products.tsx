@@ -70,12 +70,14 @@ function Products({ searchTerm = '', setSearchTerm, limitProducts = false, class
     },
   });
 
-  // Set products in context when data is fetched
+  // Set products in context when data is fetched (only for Footer usage)
   useEffect(() => {
-    if (products) {
+    if (products && products.length > 0 && limitProducts) {
+      // Only set products in context from the homepage (limitProducts=true)
+      // to avoid multiple components fighting over the context
       setProducts(products);
     }
-  }, [products, setProducts]);
+  }, [products, setProducts, limitProducts]);
 
   // Filter products based on search term
   const filteredProducts = products.filter(product =>

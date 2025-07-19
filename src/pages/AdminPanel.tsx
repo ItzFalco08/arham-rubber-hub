@@ -148,7 +148,8 @@ const AdminPanel = () => {
           category: product.category.trim(),
           description: product.description.trim() || null,
           image: product.image.trim() || null,
-          brochure: product.brochure.trim() || null
+          brochure: product.brochure.trim() || null,
+          updated_at: new Date().toISOString()
         }])
         .select();
       
@@ -345,6 +346,7 @@ const AdminPanel = () => {
     try {
       let imageUrl = productForm.image;
       let brochureUrl = productForm.brochure;
+      // console.log("Uploading to bucket:", bucket);
 
       // Upload image if file is selected
       if (imageFile) {
@@ -355,7 +357,7 @@ const AdminPanel = () => {
       // Upload brochure if file is selected
       if (brochureFile) {
         setUploadingBrochure(true);
-        brochureUrl = await uploadFile(brochureFile, 'product-brochures');
+        brochureUrl = await uploadFile(brochureFile, 'product-catalogs');
       }
 
       // Update the product form with uploaded URLs
@@ -424,12 +426,12 @@ const AdminPanel = () => {
         // Delete old brochure if exists
         if (editingProduct.brochure) {
           try {
-            await deleteFile(editingProduct.brochure, 'product-brochures');
+            await deleteFile(editingProduct.brochure, 'product-catalogs');
           } catch (deleteError) {
             console.warn('Could not delete old brochure:', deleteError);
           }
         }
-        brochureUrl = await uploadFile(brochureFile, 'product-brochures');
+        brochureUrl = await uploadFile(brochureFile, 'product-catalogs');
       }
 
       // Update the product form with uploaded URLs

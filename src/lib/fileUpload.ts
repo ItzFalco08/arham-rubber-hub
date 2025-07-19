@@ -2,7 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const uploadFile = async (
   file: File,
-  bucket: 'product-images' | 'product-brochures',
+  bucket: 'product-images' | 'product-catalogs',
   fileName?: string
 ): Promise<string> => {
   try {
@@ -54,7 +54,7 @@ export const uploadFile = async (
 
 export const deleteFile = async (
   url: string,
-  bucket: 'product-images' | 'product-brochures'
+  bucket: 'product-images' | 'product-catalogs'
 ): Promise<void> => {
   try {
     // Extract the file path from the URL
