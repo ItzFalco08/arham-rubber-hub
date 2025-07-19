@@ -27,7 +27,8 @@ import {
   LogOut,
   UserCheck,
   Image,
-  FileUp
+  FileUp,
+  Globe
 } from 'lucide-react';
 
 const AdminPanel = () => {
@@ -563,15 +564,37 @@ const AdminPanel = () => {
               Admin Dashboard
             </h1>
             <p className="text-slate-600 text-lg">Manage products and contacts</p>
+            <div className="flex items-center space-x-4 mt-3">
+              <div className="bg-gradient-to-r from-red-100 to-red-200 px-4 py-2 rounded-xl">
+                <span className="text-red-800 font-semibold text-sm">
+                  📦 Total Products: {products.length}
+                </span>
+              </div>
+              <div className="bg-gradient-to-r from-blue-100 to-blue-200 px-4 py-2 rounded-xl">
+                <span className="text-blue-800 font-semibold text-sm">
+                  📧 Total Contacts: {contacts.length}
+                </span>
+              </div>
+            </div>
           </div>
-          <Button 
-            onClick={handleLogout}
-            variant="outline"
-            className="hover:bg-red-50 hover:border-red-300 hover:text-red-700 px-6 py-3 text-lg font-semibold rounded-xl border-2 transform hover:scale-105 transition-all duration-200"
-          >
-            <LogOut className="w-5 h-5 mr-2" />
-            Logout
-          </Button>
+          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+            <Button 
+              onClick={() => window.open('/', '_blank')}
+              variant="outline"
+              className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 px-6 py-3 text-lg font-semibold rounded-xl border-2 transform hover:scale-105 transition-all duration-200"
+            >
+              <Globe className="w-5 h-5 mr-2" />
+              View Site
+            </Button>
+            <Button 
+              onClick={handleLogout}
+              variant="outline"
+              className="hover:bg-red-50 hover:border-red-300 hover:text-red-700 px-6 py-3 text-lg font-semibold rounded-xl border-2 transform hover:scale-105 transition-all duration-200"
+            >
+              <LogOut className="w-5 h-5 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
 
         {/* Enhanced Tabs */}

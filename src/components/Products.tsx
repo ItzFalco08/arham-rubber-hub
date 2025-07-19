@@ -110,7 +110,7 @@ function Products({ searchTerm = '', setSearchTerm, limitProducts = false, class
                   {displayedProducts.map((product) => (
                       <Card
                           key={product.id}
-                          className="bg-white w-fit lg:w-full min-h-[400px] border-none rounded-lg  transition-all duration-300 overflow-hidden">
+                          className="bg-white w-fit lg:w-full min-h-[400px] border-none rounded-lg shadow-lg transition-all duration-300 overflow-hidden">
 
                           <div className="flex flex-col md:flex-row h-full">
                               {/* Content Section */}
@@ -130,7 +130,17 @@ function Products({ searchTerm = '', setSearchTerm, limitProducts = false, class
                                       </p>
                                   </div>
 
-                                  <div className="flex flex-col items-center sm:items-start gap-3">
+                                  {/* Image Section - Mobile Only (below sm) */}
+                                  <div className="md:hidden w-full flex items-center justify-center mb-6">
+                                      <img
+                                          src={product.image || '/images/dummy.png'}
+                                          alt={product.name}
+                                          className="w-full h-fit max-w-[262px] max-h-[262px] object-cover rounded-lg"
+                                          loading="lazy"
+                                      />
+                                  </div>
+
+                                  <div className="flex flex-col gap-3">
                                       <Button
                                           variant="outline"
                                           onClick={() => navigate('/contact')}
@@ -148,12 +158,13 @@ function Products({ searchTerm = '', setSearchTerm, limitProducts = false, class
                                   </div>
                               </CardContent>
 
-                              {/* Image Section */}
-                              <div className=" w-full md:max-w-[40%] h-full flex items-center justify-center px-12 pb-4 md:p-0">
+                              {/* Image Section - Desktop Only (sm and above) */}
+                              <div className="hidden md:flex w-full md:max-w-[40%] h-full items-center justify-center px-12 pb-4 md:p-0">
                                   <img
                                       src={product.image || '/images/dummy.png'}
                                       alt={product.name}
                                       className="w-full h-fit max-w-[262px] max-h-[262px] object-cover rounded-lg"
+                                      loading="lazy"
                                   />
                               </div>
                           </div>
