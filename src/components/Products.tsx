@@ -1,22 +1,10 @@
 import { ArrowRight, Download, Search } from 'lucide-react'
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
-import { useProducts } from '@/context/ProductsContext'
-
-interface Product {
-  id: string;
-  name: string;
-  category: string;
-  description?: string;
-  image?: string;
-  brochure?: string;
-  created_at?: string;
-}
+import { useProducts, type Product } from '@/context/ProductsContext'
 
 interface ProductsProps {
   searchTerm?: string;
@@ -28,61 +16,13 @@ interface ProductsProps {
 function Products({ searchTerm = '', setSearchTerm, limitProducts = false, className }: ProductsProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { setProducts } = useProducts();
+  const { products, isLoading, error } = useProducts(); // Use context data instead of fetching
   const [visibleProducts, setVisibleProducts] = useState(limitProducts ? 6 : 12);
-
-  // Fetch products from Supabase
-  const { data: products = [], isLoading, error } = useQuery({
-    queryKey: ['products'],
-    queryFn: async () => {
-      console.log('Fetching products from Supabase...');
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error('Error fetching products:', error);
-        throw error;
-      }
-      
-      console.log('Products fetched:', data);
-      return data;
-    },
-  });
-
-  // Fetch global PDF setting
-  const { data: globalPdfSetting } = useQuery({
-    queryKey: ['globalPdf'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('settings')
-        .select('*')
-        .eq('key', 'global_pdf')
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Error fetching global PDF:', error);
-        return null;
-      }
-      
-      return data;
-    },
-  });
-
-  // Set products in context when data is fetched (only for Footer usage)
-  useEffect(() => {
-    if (products && products.length > 0 && limitProducts) {
-      // Only set products in context from the homepage (limitProducts=true)
-      // to avoid multiple components fighting over the context
-      setProducts(products);
-    }
-  }, [products, setProducts, limitProducts]);
 
   // Filter products based on search term
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (product.category && product.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
@@ -104,7 +44,7 @@ function Products({ searchTerm = '', setSearchTerm, limitProducts = false, class
   };
 
   const handleDownloadBrochure = (product: Product) => {
-    const pdfUrl = product.brochure || globalPdfSetting?.value;
+    const pdfUrl = product.brochure;
     if (pdfUrl) {
       console.log(`Downloading brochure for ${product.name}`);
       const link = document.createElement('a');
@@ -190,7 +130,7 @@ function Products({ searchTerm = '', setSearchTerm, limitProducts = false, class
                                       </p>
                                   </div>
 
-                                  <div className="flex flex-col gap-3">
+                                  <div className="flex flex-col items-center sm:items-start gap-3">
                                       <Button
                                           variant="outline"
                                           onClick={() => navigate('/contact')}

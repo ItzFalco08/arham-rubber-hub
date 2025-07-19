@@ -1,3 +1,4 @@
+import Contact from '@/components/Contact'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import Products from '@/components/Products'
@@ -8,6 +9,7 @@ function ProductsPage() {
     <>
       <Header isHidden={false}/>
       <Products limitProducts={false} className="mt-24" />
+      <Contact/>
       <Footer/>
     </>
   )

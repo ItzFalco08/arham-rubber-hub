@@ -17,7 +17,12 @@ export default function Footer() {
           {/* Company Info */}
           <div className="col-span-1 md:col-span-1">
 
-            <img src="/images/logo.png" className="w-[140px] mb-6" alt="" />
+            <img 
+              src="/images/logo.png" 
+              className="w-[140px] mb-6" 
+              alt="Arham Rubber Logo" 
+              loading="lazy"
+            />
 
             <address className="text-gray-600 text-sm not-italic leading-relaxed">
               83/1 Madukkarai main road sidco
@@ -33,17 +38,17 @@ export default function Footer() {
             <h4 className="font-semibold text-red-600 mb-4">Pages</h4>
             <ul className="space-y-3">
               <li>
-                <a href="/" className="text-gray-600 hover:text-red-600 transition-colors text-sm">
+                <a onClick={()=> navigate("/products")} className="cursor-pointer text-gray-600 hover:text-red-600 transition-colors text-sm">
                   Home
                 </a>
               </li>
               <li>
-                <a href="/" className="text-gray-600 hover:text-red-600 transition-colors text-sm">
+                <a onClick={()=> navigate("/contact")} className="cursor-pointer text-gray-600 hover:text-red-600 transition-colors text-sm">
                   Contact
                 </a>
               </li>
               <li>
-                <a href="/" className="text-gray-600 hover:text-red-600 transition-colors text-sm">
+                <a onClick={()=> navigate("/products")} className="cursor-pointer text-gray-600 hover:text-red-600 transition-colors text-sm">
                   Products
                 </a>
               </li>
