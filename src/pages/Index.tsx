@@ -12,6 +12,7 @@ import Footer from '@/components/Footer';
 import Contact from '@/components/Contact';
 import WhyArham from '@/components/WhyArham';
 import Header from '@/components/Header';
+import About from '@/components/About';
 import Hero from '@/components/Hero';
 
 const Index = () => {
@@ -20,6 +21,7 @@ const Index = () => {
   const [visibleProducts, setVisibleProducts] = useState(10);
   const { toast } = useToast();
   const navigate = useNavigate();
+  
 
   // Fetch products from Supabase
   const { data: products = [], isLoading, error } = useQuery({
@@ -145,18 +147,13 @@ const Index = () => {
       <Hero isSearching={isSearching} handleSearch={handleSearch} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
       {/* Enhanced About Us Section */}
-      <section id="about" className="py-[72px] max-w-7xl px-6 mx-auto bg-white">
-        <div className='w-full flex gap-[130px]'>
-          <h1 className=' text-6xl font-semibold whitespace-nowrap'>About Us</h1>
-          <p className='text-[18px] text-justify'>Arham Rubber International, a division of ISO-certified American Rubber Industries, is a premier manufacturer and supplier of high-performance industrial rubber products. We specialize in producing a diverse range of rubber sheets, hoses, and electrical insulating mats, along with custom rubber molded parts tailored to meet unique client specifications. Our product portfolio includes an extensive variety of industrial hoses for applications such as water, steam, chemical transfer, cement discharge, sand blasting, hydraulic systems, and refrigeration charging lines. Additionally, we offer specialized solutions like composite hoses for tanker loading, stainless steel braided hoses, and rubber profiles including rubber beading. Dedicated to quality and innovation, Arham Rubber International is committed to providing reliable and durable products for industrial applications worldwide.</p>
-        </div>
-      </section>
+      <About/>
 
       {/* Enhanced Products Section with Load More */}
       <section id="products" className="py-24 bg-[#F7F7F7]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
-              <h2 className="text-6xl font-semibold bg-[#020202] bg-clip-text text-transparent mb-8 tracking-tight">
+              <h2 className="text-3xl lg:text-[64px] font-medium text-[#020202] mb-8 tracking-tight">
                   {searchTerm ? `Search Results for "${searchTerm}"` : "Best Selling Products"}
               </h2>
               {/* <div className="w-24 h-2 bg-gradient-to-r from-red-600 to-red-700 rounded-full mx-auto mb-8"></div> */}
@@ -167,6 +164,7 @@ const Index = () => {
               </p>
           </div>
 
+          <div className='w-full relative flex justify-center'>
           {isLoading ? (
               <div className="text-center py-24">
                   <div className="w-16 h-16 border-4 border-red-600/20 border-t-red-600 rounded-full animate-spin mx-auto"></div>
@@ -188,49 +186,55 @@ const Index = () => {
               </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-8">
+              <div className="grid mx-0 w-fit grid-cols-1 lg:grid-cols-2 gap-8">
                   {displayedProducts.map((product) => (
                       <Card
                           key={product.id}
-                          className=" bg-white border-none rounded-md h-full w-full">
+                          className="bg-white w-fit lg:w-full min-h-[400px] border-none rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
 
-                          <div className=" flex gap-2 items-center  rounded-t-2xl h-full">
-                              <CardContent className="p-6 rounded-[2px] flex flex-col h-full">
-
-                                  <div className="h-full">
-                                      <h3 className="text-5xl leading-none mb-[14px] font-medium w-full  text-[#020202]">{product.name}</h3>
-                                      {/* <Badge className="bg-gradient-to-r from-red-100 to-red-200 text-red-800 hover:from-red-200 hover:to-red-300 text-sm font-semibold px-3 py-1 rounded-full">
-                                        {product.category}
-                                      </Badge> */}
-                                      <p className="text-[#3C3A3D] font-regular line-clamp-3 leading-relaxed">{product.description}</p>
+                          <div className="flex flex-col md:flex-row h-full">
+                              {/* Content Section */}
+                              <CardContent className="w-full max-w-[26rem] lg:w-[60%] p-6 md:p-8 flex flex-col justify-between">
+                                  <div className="mb-6">
+                                      <h3 
+                                          className="leading-tight mb-4 font-medium text-[#020202]" 
+                                          style={{fontSize: 'clamp(20px, 3vw, 36px)'}}
+                                      >
+                                          {product.name}
+                                      </h3>
+                                      <p 
+                                          className="text-[#3C3A3D] font-regular line-clamp-4 leading-relaxed" 
+                                          style={{fontSize: 'clamp(14px, 1.5vw, 16px)'}}
+                                      >
+                                          {product.description}
+                                      </p>
                                   </div>
 
-                                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                                  <div className="flex flex-col gap-3">
                                       <Button
                                           variant="outline"
-                                          size="lg"
-                                          onClick={()=> navigate('/contact')}
-                                          className="flex-1 bg-gray-50 border-[#CB4954] text-[#020202] transition-all duration-300 rounded-lg border-[1px] font-semibold">
-                                          {/* <Eye className="w-4 h-4 mr-2" /> */}
+                                          onClick={() => navigate('/contact')}
+                                          className=" w-fit h-12 border-[#CB4954] hover:bg-transparent text-[#020202]  rounded-lg border font-semibold text-sm md:text-base"
+                                      >
                                           See More Details
                                       </Button>
                                       <Button 
-                                        size="lg" 
-                                        onClick={() => handleDownloadBrochure(product)}
-                                        className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-semibold"
+                                          onClick={() => handleDownloadBrochure(product)}
+                                          className="w-fit h-12 bg-[#CB4954] hover:bg-[#963840] transition-none rounded-lg font-semibold text-sm md:text-base"
                                       >
-                                        <Download className="w-4 h-4 mr-2" />
-                                         catalogue
+                                          <Download className="w-4 h-4 mr-2" />
+                                          Download Catalogue
                                       </Button>
                                   </div>
                               </CardContent>
-                              <div>
-                              <img
-                                  // src={"https://lipsum.app/640x480/"}
-                                  src={product.image || '/api/placeholder/300/300'}
-                                  alt={product.name}
-                                  className="w-full h-full object-cover transition-transform duration-700"
-                              />
+
+                              {/* Image Section */}
+                              <div className=" w-full md:max-w-[40%] h-full flex items-center justify-center px-12 pb-4 md:p-0">
+                                  <img
+                                      src={product.image || '/images/dummy.png'}
+                                      alt={product.name}
+                                      className="w-full h-fit max-w-[262px] max-h-[262px] object-cover rounded-lg"
+                                  />
                               </div>
                           </div>
                       </Card>
@@ -260,6 +264,8 @@ const Index = () => {
               )}
             </>
           )}
+          </div>
+
         </div>
       </section>
 

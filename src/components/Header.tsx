@@ -3,7 +3,13 @@ import { Button } from './ui/button'
 import { Phone, X, Menu } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-function Header({isHidden}: {isHidden: boolean}) {
+interface HeaderProps {
+    isHidden: boolean;
+    className?: string;
+    navClassName?: string;
+}
+
+function Header({isHidden, className, navClassName}: HeaderProps) {
     const navigate = useNavigate();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
@@ -11,7 +17,7 @@ function Header({isHidden}: {isHidden: boolean}) {
     useEffect(() => {
         const handleScroll = () => {
             const scrollPosition = window.scrollY;
-            setIsVisible(scrollPosition > 200);
+            setIsVisible(scrollPosition > 400);
         };
 
         window.addEventListener('scroll', handleScroll);
@@ -51,13 +57,9 @@ function Header({isHidden}: {isHidden: boolean}) {
         
     return (
         <header className={`w-full fixed top-0 z-50 shadow-sm transition-all duration-300 ease-in-out 
-        ${
-            isHidden ? (
-                isVisible ? 'h-auto opacity-100' : 'h-0 opacity-0 overflow-hidden'
-            ) : "h-auto opacity-100"
-        }`}>
+        ${className} ${isHidden ? (isVisible ? 'h-auto opacity-100' : 'h-0 opacity-0 overflow-hidden') : "h-auto opacity-100"}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between bg-white mt-4 px-4 rounded-[12px] items-center h-20">
+                <div className={`${navClassName || 'bg-white text-[#3C3A3D]'} flex justify-between mt-4 px-4 rounded-[12px] items-center h-20`}>
                     {/* Enhanced Logo */}
                     <div className='bg-white py-[3px] px-[12px] rounded-[13px] cursor-pointer' onClick={()=> navigate("/")}>
                         <img src="/images/logo.png" alt="ARHAM RUBBER" width={100} height={56}  />
@@ -67,14 +69,14 @@ function Header({isHidden}: {isHidden: boolean}) {
                     <nav className="hidden md:flex space-x-10">
                     <button 
                         onClick={() => scrollToSection('products')}
-                        className="text-slate-700 hover:text-red-600 transition-all duration-200 font-semibold text-lg relative group cursor-pointer"
+                        className=" hover:text-red-600 transition-all duration-200 font-medium text-lg relative group cursor-pointer"
                     >
                         Our Products
                         <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-red-600 to-red-700 group-hover:w-full transition-all duration-300"></span>
                     </button>
                     <button 
                         onClick={() => scrollToSection('about')}
-                        className="text-slate-700 hover:text-red-600 transition-all duration-200 font-semibold text-lg relative group cursor-pointer"
+                        className=" hover:text-red-600 transition-all duration-200 font-medium text-lg relative group cursor-pointer"
                     >
                         About us
                         <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-red-600 to-red-700 group-hover:w-full transition-all duration-300"></span>
@@ -101,30 +103,30 @@ function Header({isHidden}: {isHidden: boolean}) {
                 </div>
 
                 {/* Mobile Navigation */}
-                {isMobileMenuOpen && isVisible && (
-                    <div className="md:hidden border-t border-slate-200 py-6 space-y-6 bg-white/95 backdrop-blur-sm">
-                    <button 
-                        onClick={() => {
-                            scrollToSection('products');
-                            setIsMobileMenuOpen(false);
-                        }}
-                        className="block text-slate-700 hover:text-red-600 transition-colors font-semibold text-lg w-full text-left"
-                    >
-                        Our Products
-                    </button>
-                    <button 
-                        onClick={() => {
-                            scrollToSection('about');
-                            setIsMobileMenuOpen(false);
-                        }}
-                        className="block text-slate-700 hover:text-red-600 transition-colors font-semibold text-lg w-full text-left"
-                    >
-                        About us
-                    </button>
-                    <Button className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-3 text-lg font-semibold shadow-xl rounded-xl" onClick={() => navigate('/contact')}>
-                        <Phone className="w-5 h-5 mr-3" />
-                        Contact now
-                    </Button>
+                {isMobileMenuOpen  && (
+                    <div className="md:hidden border py-6 mt-4 px-6 rounded-lg border-slate-400 space-y-6 bg-white/95 backdrop-blur-sm">
+                        <button 
+                            onClick={() => {
+                                scrollToSection('products');
+                                setIsMobileMenuOpen(false);
+                            }}
+                            className="block text-slate-700 hover:text-red-600 transition-colors font-semibold text-lg w-full text-left"
+                        >
+                            Our Products
+                        </button>
+                        <button 
+                            onClick={() => {
+                                scrollToSection('about');
+                                setIsMobileMenuOpen(false);
+                            }}
+                            className="block text-slate-700 hover:text-red-600 transition-colors font-semibold text-lg w-full text-left"
+                        >
+                            About us
+                        </button>
+                        <Button className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-3 text-lg font-semibold shadow-xl rounded-xl" onClick={() => navigate('/contact')}>
+                            <Phone className="w-5 h-5 mr-3" />
+                            Contact now
+                        </Button>
                     </div>
                 )}
             </div>

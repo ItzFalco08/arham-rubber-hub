@@ -48,22 +48,22 @@ export default function WhyArham() {
 
   return (
     <section className="bg-white py-16 ">
-      <div className="w-full flex flex-col items-center mx-auto">
+      <div className="w-full flex flex-col items-start sm:items-center mx-auto">
         {/* Main Content */}
-        <div className="grid max-w-7xl grid-cols-1 lg:grid-cols-2 gap-12 mb-16 px-6">
+        <div className="flex flex-col md:flex-row max-w-7xl gap-12 md:gap-24 mb-16 px-6">
           {/* Left Side - Title */}
           <div>
-            <h2 className="text-[64px] lg:text-5xl font-bold text-[#020202] leading-tight">
-              Why Arham Rubber International
+            <h2 className="text-3xl md:text-5xl xl:text-[64px] font-medium text-[#020202] leading-tight">
+              Why Arham  Rubber <br/> International
             </h2>
           </div>
 
           {/* Right Side - Features */}
-          <div className="space-y-8">
+          <div className="w-[20em] sm:w-full space-y-4 sm:space-y-0 sm:space-x-8 flex flex-col sm:flex-row">
             {features.map((feature, index) => (
               <div key={index} className="space-y-3">
-                <h3 className="text-xl font-semibold text-[#020202]">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed text-sm">{feature.description}</p>
+                <h3 className="text-xl lg:text-2xl font-semibold text-[#020202]">{feature.title}</h3>
+                <p className="text-gray-600 text-justify leading-relaxed text-sm lg:text-md">{feature.description}</p>
               </div>
             ))}
           </div>
