@@ -59,7 +59,7 @@ export default function WhyArham() {
           </div>
 
           {/* Right Side - Features */}
-          <div className="w-[20em] sm:w-full space-y-4 sm:space-y-0 sm:space-x-8 flex flex-col sm:flex-row">
+          <div className="max-w-[20em] sm:w-full sm:max-w-full space-y-4 sm:space-y-0 sm:space-x-8 flex flex-col sm:flex-row">
             {features.map((feature, index) => (
               <div key={index} className="space-y-3">
                 <h3 className="text-xl lg:text-2xl font-semibold text-[#020202]">{feature.title}</h3>

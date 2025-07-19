@@ -23,11 +23,11 @@ function Hero({handleSearch, searchTerm, setSearchTerm, isSearching}) {
             <div className="space-y-12 animate-fade-in">
                 <div className="space-y-8">
                     <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
-                        <span className="block mb-4 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">High-Performance</span>
-                        <span className="block bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">Industrial Rubber Solutions</span>
+                        <span className="block mb-4 text-white">High-Performance</span>
+                        <span className="block text-white">Industrial Rubber Solutions</span>
                     </h1>
 
-                    <p className="text-xl sm:text-2xl md:text-xl max-w-4xl mx-auto leading-relaxed text-blue-100 font-light">
+                    <p className="text-md sm:text-xl max-w-4xl mx-auto leading-relaxed text-blue-100 font-light">
                         "From versatile rubber sheets to specialized industrial hoses and custom-molded parts, Arham Rubber International delivers unmatched quality and innovation to power
                         industries worldwide."
                     </p>

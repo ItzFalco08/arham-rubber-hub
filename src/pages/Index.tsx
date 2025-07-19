@@ -14,13 +14,15 @@ import WhyArham from '@/components/WhyArham';
 import Header from '@/components/Header';
 import About from '@/components/About';
 import Hero from '@/components/Hero';
+import { useProducts } from '@/context/ProductsContext';
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [visibleProducts, setVisibleProducts] = useState(10);
+  const [visibleProducts, setVisibleProducts] = useState(6);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { setProducts } = useProducts();
   
 
   // Fetch products from Supabase
@@ -62,6 +64,13 @@ const Index = () => {
     },
   });
 
+  // Set products in context when data is fetched
+  useEffect(() => {
+    if (products) {
+      setProducts(products);
+    }
+  }, [products, setProducts]);
+
   // Filter products based on search term
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -76,7 +85,7 @@ const Index = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSearching(true);
-    setVisibleProducts(10); // Reset visible products on search
+    setVisibleProducts(6); // Reset visible products on search
     
     setTimeout(() => {
       setIsSearching(false);
@@ -88,7 +97,7 @@ const Index = () => {
   };
 
   const handleLoadMore = () => {
-    setVisibleProducts(prev => prev + 10);
+    navigate('/products');
   };
 
   const handleDownloadBrochure = (product: any) => {
@@ -164,7 +173,7 @@ const Index = () => {
               </p>
           </div>
 
-          <div className='w-full relative flex justify-center'>
+          <div className='w-full relative items-center flex flex-col'>
           {isLoading ? (
               <div className="text-center py-24">
                   <div className="w-16 h-16 border-4 border-red-600/20 border-t-red-600 rounded-full animate-spin mx-auto"></div>
@@ -190,7 +199,7 @@ const Index = () => {
                   {displayedProducts.map((product) => (
                       <Card
                           key={product.id}
-                          className="bg-white w-fit lg:w-full min-h-[400px] border-none rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+                          className="bg-white w-fit lg:w-full min-h-[400px] border-none rounded-lg  transition-all duration-300 overflow-hidden">
 
                           <div className="flex flex-col md:flex-row h-full">
                               {/* Content Section */}
@@ -241,14 +250,14 @@ const Index = () => {
                   ))}
               </div>
 
-              {/* Load More Button */}
+              {/* View All Products Button */}
               {hasMoreProducts && (
                   <div className="text-center mt-16">
                       <Button
                           onClick={handleLoadMore}
-                          size="lg"
-                          className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-12 py-4 text-xl font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl transform hover:scale-105">
-                          Load More Products
+                          size="sm"
+                          className="bg-[#CB4954] text-white text-lg font-medium transition-none hover:bg-[#963840] ">
+                          View All Products
                           <ArrowRight className="w-6 h-6 ml-3" />
                       </Button>
                       <p className="text-slate-500 mt-4 text-lg">
@@ -257,7 +266,7 @@ const Index = () => {
                   </div>
               )}
 
-              {!hasMoreProducts && filteredProducts.length > 10 && (
+              {!hasMoreProducts && filteredProducts.length > 6 && (
                   <div className="text-center mt-16">
                       <p className="text-slate-600 text-xl font-semibold">🎉 You've seen all {filteredProducts.length} products!</p>
                   </div>
