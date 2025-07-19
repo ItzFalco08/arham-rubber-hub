@@ -1,9 +1,16 @@
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import Products from '@/components/Products'
 import React from 'react'
 
-function Products() {
+function ProductsPage() {
   return (
-    <div>Products</div>
+    <>
+      <Header isHidden={false}/>
+      <Products limitProducts={false} className="mt-24" />
+      <Footer/>
+    </>
   )
 }
 
-export default Products
+export default ProductsPage
