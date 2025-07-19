@@ -14,6 +14,8 @@ export default function Contact() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
+    company: "",
     message: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -62,8 +64,8 @@ export default function Contact() {
           name: formData.name.trim(),
           email: formData.email.trim().toLowerCase(),
           message: formData.message.trim(),
-          phone: null, // Optional field
-          company: null // Optional field
+          phone: formData.phone.trim() || null,
+          company: formData.company.trim() || null
         }])
       
       if (error) {
@@ -82,6 +84,8 @@ export default function Contact() {
       setFormData({
         name: "",
         email: "",
+        phone: "",
+        company: "",
         message: "",
       })
       
@@ -103,7 +107,7 @@ export default function Contact() {
   }
 
   return (
-    <section className="relative min-h-[46rem] flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-[56rem] flex items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div
         className="hidden md:block absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -155,6 +159,28 @@ export default function Contact() {
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 bg-gray-50 border-0 rounded-lg text-gray-700 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-red-500 transition-all"
                       required
+                    />
+                  </div>
+
+                  <div>
+                    <Input
+                      type="tel"
+                      name="phone"
+                      placeholder="Phone number (optional)"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 bg-gray-50 border-0 rounded-lg text-gray-700 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-red-500 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <Input
+                      type="text"
+                      name="company"
+                      placeholder="Company name (optional)"
+                      value={formData.company}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 bg-gray-50 border-0 rounded-lg text-gray-700 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-red-500 transition-all"
                     />
                   </div>
 
