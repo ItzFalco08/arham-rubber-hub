@@ -117,7 +117,7 @@ function Products({ searchTerm = '', setSearchTerm, limitProducts = false, class
                   {displayedProducts.map((product) => (
                       <Card
                           key={product.id}
-                          className="bg-white w-fit lg:w-full min-h-[400px] border-none rounded-lg shadow-lg transition-all duration-300 overflow-hidden">
+                          className="bg-white w-full min-h-[400px] border-none rounded-lg shadow-lg transition-all duration-300 overflow-hidden">
 
                           <div className="flex flex-col md:flex-row h-full">
                               {/* Content Section */}

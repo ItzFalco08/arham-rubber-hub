@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -56,6 +56,9 @@ const AdminPanel = () => {
   const [uploadingBrochure, setUploadingBrochure] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showCredentials, setShowCredentials] = useState(false);
+  const [aboutContent, setAboutContent] = useState('');
+  const [isEditingAbout, setIsEditingAbout] = useState(false);
+  const [savingAbout, setSavingAbout] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -132,6 +135,37 @@ const AdminPanel = () => {
     },
     enabled: isAuthenticated,
   });
+
+  // Fetch about content
+  const { data: aboutData } = useQuery({
+    queryKey: ['about-content'],
+    queryFn: async () => {
+      console.log('Admin: Fetching about content...');
+      const { data, error } = await supabase
+        .from('settings')
+        .select('*')
+        .eq('key', 'about_content');
+      
+      console.log('Admin: About content query result:', { data, error });
+      
+      if (error) {
+        console.error('Error fetching about content:', error);
+        throw error;
+      }
+      
+      const result = data && data.length > 0 ? data[0].value || '' : '';
+      console.log('Admin: Returning about content:', result);
+      return result;
+    },
+    enabled: isAuthenticated,
+  });
+
+  // Update aboutContent when data is fetched
+  useEffect(() => {
+    if (aboutData) {
+      setAboutContent(aboutData);
+    }
+  }, [aboutData]);
 
   // Product mutations
   const addProductMutation = useMutation({
@@ -296,6 +330,51 @@ const AdminPanel = () => {
       toast({
         title: "Error ❌",
         description: "Failed to delete contact",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // About content mutation
+  const updateAboutMutation = useMutation({
+    mutationFn: async (content: string) => {
+      console.log('Upserting about content:', content);
+      
+      // Use upsert to either update existing or insert new record
+      const { data, error } = await supabase
+        .from('settings')
+        .upsert({ 
+          key: 'about_content', 
+          value: content, 
+          updated_at: new Date().toISOString() 
+        }, {
+          onConflict: 'key'
+        })
+        .select();
+      
+      console.log('Upsert result:', { data, error });
+      
+      if (error) {
+        console.error('Error upserting about content:', error);
+        throw error;
+      }
+      
+      console.log('About content upserted successfully');
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['about-content'] });
+      setIsEditingAbout(false);
+      toast({
+        title: "Success! ✅",
+        description: "About content updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      console.error('Update about content error:', error);
+      toast({
+        title: "Error ❌",
+        description: "Failed to update about content",
         variant: "destructive",
       });
     }
@@ -475,6 +554,22 @@ const AdminPanel = () => {
     }
   };
 
+  // About content handlers
+  const handleEditAbout = () => {
+    setIsEditingAbout(true);
+  };
+
+  const handleCancelEditAbout = () => {
+    setAboutContent(aboutData || '');
+    setIsEditingAbout(false);
+  };
+
+  const handleSaveAbout = () => {
+    setSavingAbout(true);
+    updateAboutMutation.mutate(aboutContent);
+    setSavingAbout(false);
+  };
+
   const downloadPdf = (pdfUrl: string, fileName: string) => {
     const link = document.createElement('a');
     link.href = pdfUrl;
@@ -599,7 +694,7 @@ const AdminPanel = () => {
 
         {/* Enhanced Tabs */}
         <Tabs defaultValue="products" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-2 lg:w-[400px] h-16 bg-white shadow-lg rounded-2xl border-2">
+          <TabsList className="grid w-full grid-cols-3 lg:w-[600px] h-16 bg-white shadow-lg rounded-2xl border-2">
             <TabsTrigger value="products" className="flex items-center space-x-3 text-lg font-semibold h-12 rounded-xl">
               <Package className="w-5 h-5" />
               <span>Products</span>
@@ -607,6 +702,10 @@ const AdminPanel = () => {
             <TabsTrigger value="contacts" className="flex items-center space-x-3 text-lg font-semibold h-12 rounded-xl">
               <Users className="w-5 h-5" />
               <span>Contacts</span>
+            </TabsTrigger>
+            <TabsTrigger value="about" className="flex items-center space-x-3 text-lg font-semibold h-12 rounded-xl">
+              <FileUp className="w-5 h-5" />
+              <span>About</span>
             </TabsTrigger>
           </TabsList>
 
@@ -941,6 +1040,65 @@ const AdminPanel = () => {
                 ))
               )}
             </div>
+          </TabsContent>
+
+          {/* About Tab */}
+          <TabsContent value="about" className="space-y-8">
+            <div>
+              <h2 className="text-3xl font-bold text-slate-800">About Content Management</h2>
+              <p className="text-slate-600 text-lg mt-2">Edit the About Us section content</p>
+            </div>
+            
+            <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-blue-50 rounded-2xl">
+              <CardContent className="p-8">
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-xl font-semibold text-slate-800">About Us Content</h3>
+                    {!isEditingAbout ? (
+                      <Button
+                        onClick={handleEditAbout}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
+                      >
+                        <Edit2 className="w-4 h-4 mr-2" />
+                        Edit Content
+                      </Button>
+                    ) : (
+                      <div className="flex space-x-3">
+                        <Button
+                          onClick={handleCancelEditAbout}
+                          variant="outline"
+                          className="px-6 py-2 rounded-lg font-semibold"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleSaveAbout}
+                          disabled={savingAbout}
+                          className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold"
+                        >
+                          {savingAbout ? 'Saving...' : 'Save Changes'}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  {isEditingAbout ? (
+                    <Textarea
+                      value={aboutContent}
+                      onChange={(e) => setAboutContent(e.target.value)}
+                      className="w-full min-h-[200px] p-4 border rounded-lg resize-none"
+                      placeholder="Enter about content..."
+                    />
+                  ) : (
+                    <div className="bg-gray-50 p-6 rounded-lg border">
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        {aboutContent || 'No content available. Click "Edit Content" to add content.'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
