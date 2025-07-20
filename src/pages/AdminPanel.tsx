@@ -841,6 +841,22 @@ const AdminPanel = () => {
             <div>
               <h2 className="text-3xl font-bold text-slate-800">Contact Submissions</h2>
               <p className="text-slate-600 text-lg mt-2">View and manage customer inquiries</p>
+              
+              {/* Contact Statistics */}
+              {contacts.length > 0 && (
+                <div className="flex flex-wrap gap-4 mt-6">
+                  <div className="bg-gradient-to-r from-blue-100 to-blue-200 px-4 py-2 rounded-xl">
+                    <span className="text-blue-800 font-semibold text-sm">
+                      🎯 Product Inquiries: {contacts.filter(contact => contact.product).length}
+                    </span>
+                  </div>
+                  <div className="bg-gradient-to-r from-green-100 to-green-200 px-4 py-2 rounded-xl">
+                    <span className="text-green-800 font-semibold text-sm">
+                      💬 General Inquiries: {contacts.filter(contact => !contact.product).length}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="grid grid-cols-1 gap-8">
@@ -858,6 +874,13 @@ const AdminPanel = () => {
                 contacts.map((contact) => (
                   <Card key={contact.id} className="shadow-xl border-0 bg-gradient-to-br from-white to-blue-50 rounded-2xl">
                     <CardContent className="p-8">
+                      {contact.product && (
+                        <div className="mb-4">
+                          <Badge className="bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 text-xs px-3 py-1 rounded-full font-semibold">
+                            🎯 Product Inquiry: {contact.product}
+                          </Badge>
+                        </div>
+                      )}
                       <div className="flex flex-col md:flex-row justify-between items-start space-y-6 md:space-y-0">
                         <div className="flex-1 space-y-6">
                           <div className="flex flex-wrap items-center gap-6">
@@ -879,6 +902,14 @@ const AdminPanel = () => {
                               <div className="flex items-center text-slate-600">
                                 <Building className="w-5 h-5 mr-3 text-red-600" />
                                 <span className="text-lg">{contact.company}</span>
+                              </div>
+                            )}
+                            {contact.product && (
+                              <div className="flex items-center text-slate-600">
+                                <Package className="w-5 h-5 mr-3 text-red-600" />
+                                <span className="text-lg font-medium text-blue-700 bg-blue-50 px-3 py-1 rounded-full">
+                                  {contact.product}
+                                </span>
                               </div>
                             )}
                           </div>

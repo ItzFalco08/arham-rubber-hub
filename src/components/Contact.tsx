@@ -2,30 +2,61 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
+import { useSelectedProduct } from "@/context/SelectedProductContext"
+import { useProducts } from "@/context/ProductsContext"
 
 export default function Contact() {
+  const { selectedProduct, setSelectedProduct } = useSelectedProduct();
+  const { products } = useProducts(); // Get products from context
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     company: "",
+    product: selectedProduct || "none", // Initialize with selected product or "none"
     message: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
+
+  // Update product field when selectedProduct changes
+  useEffect(() => {
+    if (selectedProduct) {
+      setFormData(prev => ({
+        ...prev,
+        product: selectedProduct
+      }));
+    }
+  }, [selectedProduct]);
+
+  // Clear selected product when component unmounts or form is submitted
+  useEffect(() => {
+    return () => {
+      // Optional: Clear selected product when leaving the page
+      // setSelectedProduct(null);
+    };
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }))
+  }
+
+  const handleProductChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      product: value,
     }))
   }
 
@@ -65,7 +96,8 @@ export default function Contact() {
           email: formData.email.trim().toLowerCase(),
           message: formData.message.trim(),
           phone: formData.phone.trim() || null,
-          company: formData.company.trim() || null
+          company: formData.company.trim() || null,
+          product: formData.product === "none" ? null : formData.product.trim() || null // Handle "none" case
         }])
       
       if (error) {
@@ -80,12 +112,16 @@ export default function Contact() {
 
       console.log("Form submitted successfully to Supabase")
       
+      // Clear selected product after successful submission
+      setSelectedProduct(null);
+      
       // Reset form on success
       setFormData({
         name: "",
         email: "",
         phone: "",
         company: "",
+        product: "none",
         message: "",
       })
       
@@ -130,6 +166,7 @@ export default function Contact() {
             <Card className="w-full max-w-md bg-white shadow-2xl">
               <CardHeader className="pb-6">
                 <CardTitle className="text-3xl font-bold text-gray-900 text-center">Reach Us</CardTitle>
+
                 <div className="text-center text-gray-600 text-sm leading-relaxed mt-4">
                   <p>No 83/1, Madukkarai Road, Kurichi, Madukkarai,</p>
                   <p>Coimbatore-641021, Tamil Nadu, India</p>
@@ -182,6 +219,33 @@ export default function Contact() {
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 bg-gray-50 border-0 rounded-lg text-gray-700 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-red-500 transition-all"
                     />
+                  </div>
+
+                  <div className="relative">
+                    <Select value={formData.product} onValueChange={handleProductChange}>
+                      <SelectTrigger 
+                        className={`w-full px-4 py-3 border-0 rounded-lg text-gray-700 focus:bg-white focus:ring-2 focus:ring-red-500 transition-all ${
+                          selectedProduct && formData.product === selectedProduct 
+                            ? 'bg-blue-50 border-2 border-blue-200' 
+                            : 'bg-gray-50'
+                        }`}
+                      >
+                        <SelectValue placeholder="Product of interest (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None (General Inquiry)</SelectItem>
+                        {products.map((product) => (
+                          <SelectItem key={product.id} value={product.name}>
+                            {product.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedProduct && formData.product === selectedProduct && (
+                      <div className="absolute right-8 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                        <span className="text-blue-500 text-sm">✨</span>
+                      </div>
+                    )}
                   </div>
 
                   <div>

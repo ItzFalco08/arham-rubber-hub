@@ -5,6 +5,7 @@ import { Card, CardContent } from './ui/card'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '@/hooks/use-toast'
 import { useProducts, type Product } from '@/context/ProductsContext'
+import { useSelectedProduct } from '@/context/SelectedProductContext'
 
 interface ProductsProps {
   searchTerm?: string;
@@ -17,6 +18,7 @@ function Products({ searchTerm = '', setSearchTerm, limitProducts = false, class
   const navigate = useNavigate();
   const { toast } = useToast();
   const { products, isLoading, error } = useProducts(); // Use context data instead of fetching
+  const { setSelectedProduct } = useSelectedProduct();
   const [visibleProducts, setVisibleProducts] = useState(limitProducts ? 6 : 12);
 
   // Filter products based on search term
@@ -41,6 +43,11 @@ function Products({ searchTerm = '', setSearchTerm, limitProducts = false, class
     } else {
       setVisibleProducts(prev => prev + 6);
     }
+  };
+
+  const handleSeeMoreDetails = (productName: string) => {
+    setSelectedProduct(productName);
+    navigate('/contact');
   };
 
   const handleDownloadBrochure = (product: Product) => {
@@ -140,22 +147,23 @@ function Products({ searchTerm = '', setSearchTerm, limitProducts = false, class
                                       />
                                   </div>
 
-                                  <div className="flex flex-col gap-3">
+                                  <div className="flex flex-col items-center md:items-start gap-3">
                                       <Button
                                           variant="outline"
-                                          onClick={() => navigate('/contact')}
-                                          className=" w-fit h-12 border-[#CB4954] hover:bg-transparent text-[#020202]  rounded-lg border font-semibold text-sm md:text-base"
+                                          onClick={() => handleSeeMoreDetails(product.name)}
+                                          className="w-[203px] md:w-fit h-12 border-[#CB4954] hover:bg-transparent text-[#020202]  rounded-lg border font-semibold text-sm md:text-base"
                                       >
                                           See More Details
                                       </Button>
                                       <Button 
                                           onClick={() => handleDownloadBrochure(product)}
-                                          className="w-fit h-12 bg-[#CB4954] hover:bg-[#963840] transition-none rounded-lg font-semibold text-sm md:text-base"
+                                          className="w-[203px] md:w-fit h-12 bg-[#CB4954] hover:bg-[#963840] transition-none rounded-lg font-semibold text-sm md:text-base"
                                       >
                                           <Download className="w-4 h-4 mr-2" />
                                           Download Catalogue
                                       </Button>
                                   </div>
+
                               </CardContent>
 
                               {/* Image Section - Desktop Only (sm and above) */}
